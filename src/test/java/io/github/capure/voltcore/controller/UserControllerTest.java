@@ -2,12 +2,15 @@ package io.github.capure.voltcore.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.capure.voltcore.config.SecurityConfig;
+import io.github.capure.voltcore.dto.GetUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.exception.*;
+import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
 import io.github.capure.voltcore.service.UserService;
 import io.github.capure.voltcore.util.JwtUtil;
+import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -22,11 +25,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import static org.hamcrest.Matchers.*;
 
 @WebMvcTest
 @Import(SecurityConfig.class)
@@ -48,6 +54,21 @@ public class UserControllerTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private User getUser() {
+        return new User(1L,
+                "tester",
+                "password1",
+                "tester@example.com",
+                true,
+                "ROLE_USER",
+                "https://example.com",
+                "https://github.com/Capure",
+                null,
+                0,
+                0,
+                0);
     }
 
     private static String repeatChar(int size, char ch) {
@@ -192,9 +213,9 @@ public class UserControllerTest {
 
         Mockito.doThrow(FailedDeletionException.class).when(userService).delete(1L);
 
-        mockMvc.perform(MockMvcRequestBuilders
+        assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
                         .delete("/api/user/1"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest()));
     }
 
     @Test
@@ -203,5 +224,14 @@ public class UserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .delete("/api/user/1"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    public void getShouldReturnGetUserDto() throws Exception {
+        Mockito.when(userService.get(1L)).thenReturn(GetUserDto.getFromUser(getUser()));
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.username", is(getUser().getUsername())));
     }
 }

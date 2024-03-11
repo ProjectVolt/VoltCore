@@ -2,6 +2,7 @@ package io.github.capure.voltcore.filter;
 
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
 import io.github.capure.voltcore.util.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -40,7 +41,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         final String token = header.split(" ")[1].trim();
-        if (!jwtTokenUtil.validate(token)) {
+        try {
+            if (!jwtTokenUtil.validate(token)) {
+                chain.doFilter(request, response);
+                return;
+            }
+        } catch (ExpiredJwtException e) {
             chain.doFilter(request, response);
             return;
         }

@@ -1,5 +1,6 @@
 package io.github.capure.voltcore.service;
 
+import io.github.capure.voltcore.dto.GetUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.exception.*;
@@ -225,5 +226,18 @@ public class UserServiceTest {
         Mockito.when(userRepository.updateEnabledByUserId(mockId, false)).thenReturn(1);
 
         assertThrows(AccessDeniedException.class, () -> userService.delete(mockId));
+    }
+
+    @Test
+    public void shouldLetUserGetUserDataById() {
+        Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.of(getUser()));
+        GetUserDto result = assertDoesNotThrow(() -> userService.get(getUser().getId()));
+        assertEquals(getUser().getUsername(), result.getUsername());
+    }
+
+    @Test
+    public void shouldThrowForGetWithInvalidId() {
+        Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.empty());
+        assertThrows(InvalidIdException.class, () -> userService.get(getUser().getId()));
     }
 }

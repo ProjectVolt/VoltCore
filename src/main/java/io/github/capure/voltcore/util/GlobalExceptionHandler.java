@@ -1,5 +1,7 @@
 package io.github.capure.voltcore.util;
 
+import io.github.capure.voltcore.exception.InvalidIdException;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, List<String>>> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return new ResponseEntity<>(getErrorsMap(List.of("Invalid argument type")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidIdException.class)
+    public ResponseEntity<Map<String, List<String>>> handleInvalidId(InvalidIdException ex) {
+        return new ResponseEntity<>(getErrorsMap(List.of("Invalid id")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
 
     private Map<String, List<String>> getErrorsMap(List<String> errors) {

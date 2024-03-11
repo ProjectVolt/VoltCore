@@ -1,5 +1,6 @@
 package io.github.capure.voltcore.controller;
 
+import io.github.capure.voltcore.dto.GetUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.exception.*;
@@ -17,15 +18,20 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @GetMapping("/{id}")
+    public GetUserDto getById(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
+        response.setStatus(200);
+        return userService.get(id);
+    }
+
     @DeleteMapping("/{id}")
-    public String delete(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) {
+    public String delete(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
         try {
             userService.delete(id);
             response.setStatus(200);
             return "Deleted";
         } catch (FailedDeletionException e) {
-            response.setStatus(400);
-            return "Invalid id";
+            throw new InvalidIdException();
         }
     }
 

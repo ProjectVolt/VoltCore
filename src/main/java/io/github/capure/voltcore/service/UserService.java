@@ -1,5 +1,6 @@
 package io.github.capure.voltcore.service;
 
+import io.github.capure.voltcore.dto.GetUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.exception.*;
@@ -35,6 +36,11 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    public GetUserDto get(Long id) throws InvalidIdException {
+        User user = userRepository.findById(id).orElseThrow(InvalidIdException::new);
+        return GetUserDto.getFromUser(user);
+    }
 
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     @Transactional
