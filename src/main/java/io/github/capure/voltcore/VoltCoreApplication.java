@@ -1,5 +1,6 @@
 package io.github.capure.voltcore;
 
+import io.github.capure.voltcore.service.VoltSettingsService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -7,7 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class VoltCoreApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(VoltCoreApplication.class, args);
+        var context = SpringApplication.run(VoltCoreApplication.class, args);
+        context.getBean(VoltSettingsService.class).init();
     }
 
 }
