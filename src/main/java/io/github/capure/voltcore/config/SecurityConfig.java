@@ -2,8 +2,10 @@ package io.github.capure.voltcore.config;
 
 import io.github.capure.voltcore.filter.JwtTokenFilter;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
+import io.github.capure.voltcore.validator.RoleValidator;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
@@ -91,5 +93,10 @@ public class SecurityConfig {
         DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
         expressionHandler.setRoleHierarchy(roleHierarchy);
         return expressionHandler;
+    }
+
+    @Bean
+    public RoleValidator roleValidator() {
+        return new RoleValidator();
     }
 }

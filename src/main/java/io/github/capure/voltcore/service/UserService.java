@@ -5,6 +5,7 @@ import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.dto.admin.AdminGetUserDto;
+import io.github.capure.voltcore.dto.admin.AdminPutUserDto;
 import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.repository.UserRepository;
@@ -38,6 +39,28 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void adminUpdate(Long id, AdminPutUserDto data) throws InvalidIdException, FailedUpdateException {
+        User user = userRepository.findById(id).orElseThrow(InvalidIdException::new);
+        try {
+            if (data.getPassword() != null && !data.getPassword().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(data.getPassword()));
+            }
+            if (data.getEnabled() != null) user.setEnabled(data.getEnabled());
+            if (data.getRole() != null && !data.getRole().isEmpty()) user.setRole(data.getRole());
+            if (data.getAvatar() != null && !data.getAvatar().isEmpty()) user.setAvatar(data.getAvatar());
+            if (data.getGithub() != null && !data.getGithub().isEmpty()) user.setGithub(data.getGithub());
+            if (data.getSchool() != null && !data.getSchool().isEmpty()) user.setSchool(data.getSchool());
+            log.info("Updating user {}...", id);
+            userRepository.save(user);
+            log.info("Update successful");
+        } catch (Exception e) {
+            log.error("Update failed", e);
+            throw new FailedUpdateException();
+        }
+
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     public AdminGetUserDto adminGet(Long id) throws InvalidIdException {

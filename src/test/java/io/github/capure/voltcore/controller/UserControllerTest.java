@@ -7,6 +7,7 @@ import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.dto.admin.AdminGetUserDto;
+import io.github.capure.voltcore.dto.admin.AdminPutUserDto;
 import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
@@ -268,5 +269,44 @@ public class UserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/api/user/admin/" + getUser().getId()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.username", is(getUser().getUsername())));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminUpdateShouldSend200ForValidData() throws Exception {
+        AdminPutUserDto putData = new AdminPutUserDto();
+        putData.setGithub("Capure");
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/user/admin/" + getUser().getId())
+                        .content(asJsonString(putData))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminUpdateShouldSend500ForDatabaseError() throws Exception {
+        AdminPutUserDto putData = new AdminPutUserDto();
+        Mockito.doThrow(FailedUpdateException.class).when(userService).adminUpdate(any(), any());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/user/admin/" + getUser().getId())
+                        .content(asJsonString(putData))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminUpdateShouldSend400ForInvalidRole() throws Exception {
+        AdminPutUserDto putData = new AdminPutUserDto();
+        putData.setRole("invalid");
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/user/admin/" + getUser().getId())
+                        .content(asJsonString(putData))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

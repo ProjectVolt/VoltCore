@@ -5,6 +5,7 @@ import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.dto.admin.AdminGetUserDto;
+import io.github.capure.voltcore.dto.admin.AdminPutUserDto;
 import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.model.VoltSettings;
@@ -329,5 +330,47 @@ public class UserServiceTest {
 
         assertEquals(getUser().getId(), result.getId());
         assertEquals(getUser().getUsername(), result.getUsername());
+    }
+
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowInvalidIdExceptionForAdminUserUpdate() {
+        AdminPutUserDto putData = new AdminPutUserDto();
+        putData.setGithub("Capure");
+        assertThrows(InvalidIdException.class, () -> userService.adminUpdate(getUser().getId(), putData));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowAccessDeniedExceptionForAdminUserUpdateIfCalledByNonAdminUser() {
+        assertThrows(AccessDeniedException.class, () -> userService.adminUpdate(getAdmin().getId(), null));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowFailedUpdateExceptionForFailedAdminUserUpdate() {
+        AdminPutUserDto putData = new AdminPutUserDto();
+        putData.setGithub("Capure");
+        Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.of(getUser()));
+        Mockito.doThrow(NullPointerException.class).when(userRepository).save(any());
+        assertThrows(FailedUpdateException.class, () -> userService.adminUpdate(getUser().getId(), putData));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldUpdatePasswordForAdminUserUpdate() {
+        AdminPutUserDto putData = new AdminPutUserDto();
+        putData.setPassword("testtest");
+        Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.of(getUser()));
+        AtomicReference<User> saved = new AtomicReference<>();
+        Mockito.doAnswer(a -> {
+            saved.set(a.getArgument(0));
+            return null;
+        }).when(userRepository).save(any());
+
+        assertDoesNotThrow(() -> userService.adminUpdate(getUser().getId(), putData));
+
+        assertTrue(passwordEncoder.matches(putData.getPassword(), saved.get().getPassword()));
     }
 }
