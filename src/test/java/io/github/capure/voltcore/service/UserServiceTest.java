@@ -1,6 +1,7 @@
 package io.github.capure.voltcore.service;
 
 import io.github.capure.voltcore.dto.GetUserDto;
+import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.exception.*;
@@ -239,5 +240,71 @@ public class UserServiceTest {
     public void shouldThrowForGetWithInvalidId() {
         Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.empty());
         assertThrows(InvalidIdException.class, () -> userService.get(getUser().getId()));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldLetLoggedInUserUpdateTheirProfile() {
+        PutUserDto putData = new PutUserDto("abcdef", "Capure", "Volt LO");
+        Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.of(getUser()));
+        AtomicReference<User> saved = new AtomicReference<>();
+        Mockito.doAnswer(a -> {
+            saved.set(a.getArgument(0));
+            return null;
+        }).when(userRepository).save(any());
+
+        assertDoesNotThrow(() -> userService.update(getUser().getId(), putData));
+
+        assertEquals(putData.getAvatar(), saved.get().getAvatar());
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldLetLoggedInUserUpdateTheirProfileWithPartialDto() {
+        PutUserDto putData1 = new PutUserDto(null, null, null);
+        PutUserDto putData2 = new PutUserDto(null, "Capure", "Volt LO");
+        PutUserDto putData3 = new PutUserDto("abcdef", null, "Volt LO");
+        PutUserDto putData4 = new PutUserDto("abcdef", "Capure", null);
+        Mockito.when(userRepository.findById(getUser().getId())).thenAnswer(a -> Optional.of(getUser()));
+        AtomicReference<User> saved = new AtomicReference<>();
+        Mockito.doAnswer(a -> {
+            saved.set(a.getArgument(0));
+            return null;
+        }).when(userRepository).save(any());
+
+        assertDoesNotThrow(() -> userService.update(getUser().getId(), putData1));
+        assertEquals(getUser().getAvatar(), saved.get().getAvatar());
+
+        assertDoesNotThrow(() -> userService.update(getUser().getId(), putData2));
+        assertEquals(getUser().getAvatar(), saved.get().getAvatar());
+
+        assertDoesNotThrow(() -> userService.update(getUser().getId(), putData3));
+        assertEquals(getUser().getGithub(), saved.get().getGithub());
+
+        assertDoesNotThrow(() -> userService.update(getUser().getId(), putData4));
+        assertEquals(getUser().getSchool(), saved.get().getSchool());
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowInvalidIdExceptionForUserUpdate() {
+        PutUserDto putData = new PutUserDto("abcdef", "Capure", "Volt LO");
+        assertThrows(InvalidIdException.class, () -> userService.update(getUser().getId(), putData));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowAccessDeniedExceptionForUserUpdateForOtherUser() {
+        PutUserDto putData = new PutUserDto("abcdef", "Capure", "Volt LO");
+        assertThrows(AccessDeniedException.class, () -> userService.update(getAdmin().getId(), putData));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowFailedUpdateExceptionForFailedUserUpdate() {
+        PutUserDto putData = new PutUserDto("abcdef", "Capure", "Volt LO");
+        Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.of(getUser()));
+        Mockito.doThrow(NullPointerException.class).when(userRepository).save(any());
+        assertThrows(FailedUpdateException.class, () -> userService.update(getUser().getId(), putData));
     }
 }

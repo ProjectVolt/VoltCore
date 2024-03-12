@@ -3,6 +3,7 @@ package io.github.capure.voltcore.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.capure.voltcore.config.SecurityConfig;
 import io.github.capure.voltcore.dto.GetUserDto;
+import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
 import io.github.capure.voltcore.exception.*;
@@ -25,7 +26,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -233,5 +233,30 @@ public class UserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/api/user/1"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.username", is(getUser().getUsername())));
+    }
+
+    @Test
+    @WithMockUser
+    public void updateShouldSend200ForValidData() throws Exception {
+        PutUserDto putData = new PutUserDto("abcdef", "Capure", "Volt LO");
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/user/" + getUser().getId())
+                        .content(asJsonString(putData))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    public void updateShouldSend500ForDatabaseError() throws Exception {
+        PutUserDto putData = new PutUserDto("abcdef", "Capure", "Volt LO");
+        Mockito.doThrow(FailedUpdateException.class).when(userService).update(any(), any());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/user/" + getUser().getId())
+                        .content(asJsonString(putData))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
     }
 }
