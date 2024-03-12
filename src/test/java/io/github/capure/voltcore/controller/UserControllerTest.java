@@ -6,6 +6,7 @@ import io.github.capure.voltcore.dto.GetUserDto;
 import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
+import io.github.capure.voltcore.dto.admin.AdminGetUserDto;
 import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
@@ -258,5 +259,14 @@ public class UserControllerTest {
                         .content(asJsonString(putData))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminGetByIdShouldReturnAdminGetUserDto() throws Exception {
+        Mockito.when(userService.adminGet(getUser().getId())).thenReturn(AdminGetUserDto.getFromUser(getUser()));
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/admin/" + getUser().getId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.username", is(getUser().getUsername())));
     }
 }

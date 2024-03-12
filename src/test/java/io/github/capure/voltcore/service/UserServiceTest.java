@@ -4,6 +4,7 @@ import io.github.capure.voltcore.dto.GetUserDto;
 import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
+import io.github.capure.voltcore.dto.admin.AdminGetUserDto;
 import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.model.VoltSettings;
@@ -306,5 +307,27 @@ public class UserServiceTest {
         Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.of(getUser()));
         Mockito.doThrow(NullPointerException.class).when(userRepository).save(any());
         assertThrows(FailedUpdateException.class, () -> userService.update(getUser().getId(), putData));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowAccessDeniedExceptionForAdminGetIfCalledByNormalUser() {
+        assertThrows(AccessDeniedException.class, () -> userService.adminGet(getUser().getId()));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowInvalidIdExceptionForAdminGetWithInvalidId() {
+        assertThrows(InvalidIdException.class, () -> userService.adminGet(3L));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldWorkForAdminGetWithValidId() {
+        Mockito.when(userRepository.findById(getUser().getId())).thenReturn(Optional.of(getUser()));
+        AdminGetUserDto result = assertDoesNotThrow(() -> userService.adminGet(getUser().getId()));
+
+        assertEquals(getUser().getId(), result.getId());
+        assertEquals(getUser().getUsername(), result.getUsername());
     }
 }

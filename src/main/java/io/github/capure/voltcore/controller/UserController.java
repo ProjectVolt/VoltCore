@@ -4,6 +4,7 @@ import io.github.capure.voltcore.dto.GetUserDto;
 import io.github.capure.voltcore.dto.PutUserDto;
 import io.github.capure.voltcore.dto.UserLoginDto;
 import io.github.capure.voltcore.dto.UserRegisterDto;
+import io.github.capure.voltcore.dto.admin.AdminGetUserDto;
 import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @GetMapping("/admin/{id}")
+    public AdminGetUserDto adminGetById(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
+        response.setStatus(200);
+        return userService.adminGet(id);
+    }
 
     @PutMapping("/{id}")
     public String update(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id, @Valid @RequestBody PutUserDto data) throws InvalidIdException {
