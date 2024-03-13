@@ -10,10 +10,14 @@ import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -33,12 +37,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/admin/{id}")
-    public AdminGetUserDto adminGetById(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
-        response.setStatus(200);
-        return userService.adminGet(id);
-    }
-
     @PutMapping("/{id}")
     public String update(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id, @Valid @RequestBody PutUserDto data) throws InvalidIdException {
         try {
@@ -49,6 +47,24 @@ public class UserController {
             response.setStatus(500);
             return "Internal server error";
         }
+    }
+
+    @GetMapping("/admin/")
+    public List<AdminGetUserDto> adminGetAll(HttpServletResponse response, @RequestParam @NotEmpty String search, @RequestParam @Min(0) Integer page, @RequestParam @Min(1) @Max(50) Integer pageSize, @RequestParam(required = false) Boolean enabled) {
+        response.setStatus(200);
+        return userService.adminGetAll(search, page, pageSize, enabled);
+    }
+
+    @GetMapping("/")
+    public List<GetUserDto> getAll(HttpServletResponse response, @RequestParam @NotEmpty String search, @RequestParam @Min(0) Integer page, @RequestParam @Min(1) @Max(50) Integer pageSize) {
+        response.setStatus(200);
+        return userService.getAll(search, page, pageSize);
+    }
+
+    @GetMapping("/admin/{id}")
+    public AdminGetUserDto adminGetById(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
+        response.setStatus(200);
+        return userService.adminGet(id);
     }
 
     @GetMapping("/{id}")

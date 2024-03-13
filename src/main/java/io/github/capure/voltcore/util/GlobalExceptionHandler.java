@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -47,6 +48,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidIdException.class)
     public ResponseEntity<Map<String, List<String>>> handleInvalidId(InvalidIdException ex) {
         return new ResponseEntity<>(getErrorsMap(List.of("Invalid id")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, List<String>>> handleMissingParam(MissingServletRequestParameterException ex) {
+        String error = ex.getParameterName() + ": " + ex.getMessage();
+        return new ResponseEntity<>(getErrorsMap(List.of(error)), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
 
     private Map<String, List<String>> getErrorsMap(List<String> errors) {

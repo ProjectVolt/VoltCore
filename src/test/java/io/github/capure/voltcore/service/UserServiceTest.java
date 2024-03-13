@@ -13,7 +13,9 @@ import io.github.capure.voltcore.repository.UserRepository;
 import io.github.capure.voltcore.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +35,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { UserService.class, UserDetailsServiceImpl.class, UserRepository.class, VoltSettingsService.class, AuthenticationManager.class, JwtUtil.class, BCryptPasswordEncoder.class })
+@ContextConfiguration(classes = {UserService.class, UserDetailsServiceImpl.class, UserRepository.class, VoltSettingsService.class, AuthenticationManager.class, JwtUtil.class, BCryptPasswordEncoder.class})
 @EnableMethodSecurity
 public class UserServiceTest {
     @Autowired
@@ -372,5 +375,35 @@ public class UserServiceTest {
         assertDoesNotThrow(() -> userService.adminUpdate(getUser().getId(), putData));
 
         assertTrue(passwordEncoder.matches(putData.getPassword(), saved.get().getPassword()));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldThrowAccessDeniedExceptionForAdminGetAllIfCalledByNonAdminUser() {
+        assertThrows(AccessDeniedException.class, () -> userService.adminGetAll("ignored", 0, 10, null));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldFindAllMatchingAndIgnoreEnabledForAdminGetAllWithEnabledNull() {
+        Mockito.when(userRepository.findAllByUsernameLikeIgnoreCase(any(), any())).thenReturn(List.of(getUser()));
+        List<AdminGetUserDto> results = assertDoesNotThrow(() -> userService.adminGetAll("ignored", 0, 10, null));
+        assertEquals(getUser().getUsername(), results.getLast().getUsername());
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldFindAllMatchingForAdminGetAllWithEnabledTrue() {
+        Mockito.when(userRepository.findAllByEnabledAndUsernameLikeIgnoreCase(any(), any(), any())).thenReturn(List.of(getUser()));
+        List<AdminGetUserDto> results = assertDoesNotThrow(() -> userService.adminGetAll("ignored", 0, 10, true));
+        assertEquals(getUser().getUsername(), results.getLast().getUsername());
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldFindAllMatchingForGetAll() {
+        Mockito.when(userRepository.findAllByEnabledAndUsernameLikeIgnoreCase(any(), any(), any())).thenReturn(List.of(getUser()));
+        List<GetUserDto> results = assertDoesNotThrow(() -> userService.getAll("ignored", 0, 10));
+        assertEquals(getUser().getUsername(), results.getLast().getUsername());
     }
 }

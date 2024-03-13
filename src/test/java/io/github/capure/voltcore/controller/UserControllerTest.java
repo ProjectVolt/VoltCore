@@ -28,10 +28,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import static org.hamcrest.Matchers.*;
@@ -39,7 +41,7 @@ import static org.hamcrest.Matchers.*;
 @WebMvcTest
 @Import(SecurityConfig.class)
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { JwtUtil.class, UserController.class, UserService.class, UserDetailsServiceImpl.class })
+@ContextConfiguration(classes = {JwtUtil.class, UserController.class, UserService.class, UserDetailsServiceImpl.class})
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -85,9 +87,9 @@ public class UserControllerTest {
         Consumer<UserLoginDto> test = (loginData) -> {
             try {
                 mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/user/login")
-                        .content(asJsonString(loginData))
-                        .contentType(MediaType.APPLICATION_JSON))
+                                .post("/api/user/login")
+                                .content(asJsonString(loginData))
+                                .contentType(MediaType.APPLICATION_JSON))
                         .andExpect(status().isBadRequest());
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -307,6 +309,102 @@ public class UserControllerTest {
                         .put("/api/user/admin/" + getUser().getId())
                         .content(asJsonString(putData))
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    public void getAllShouldSend200AndReturnListOfUsersForValidParams() throws Exception {
+        Mockito.when(userService.getAll(any(), anyInt(), anyInt())).thenReturn(List.of(GetUserDto.getFromUser(getUser())));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/")
+                        .param("search", "username")
+                        .param("page", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].username", is(getUser().getUsername())));
+    }
+
+    @Test
+    @WithMockUser
+    public void getAllShouldSend400ForInvalidOrMissingParams() throws Exception {
+        Mockito.when(userService.getAll(any(), anyInt(), anyInt())).thenReturn(List.of(GetUserDto.getFromUser(getUser())));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/")
+                        .param("page", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/")
+                        .param("search", "username")
+                        .param("pageSize", "10"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/")
+                        .param("search", "username")
+                        .param("page", "0"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/")
+                        .param("search", "username")
+                        .param("page", "0")
+                        .param("pageSize", "invalid"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminGetAllShouldSend200AndReturnListOfUsersForValidParams() throws Exception {
+        Mockito.when(userService.adminGetAll(any(), anyInt(), anyInt(), any())).thenReturn(List.of(AdminGetUserDto.getFromUser(getUser())));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/admin/")
+                        .param("search", "username")
+                        .param("page", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].username", is(getUser().getUsername())));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/admin/")
+                        .param("search", "username")
+                        .param("page", "0")
+                        .param("pageSize", "10")
+                        .param("enabled", "false"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].username", is(getUser().getUsername())));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminGetAllShouldSend400ForInvalidOrMissingParams() throws Exception {
+        Mockito.when(userService.adminGetAll(any(), anyInt(), anyInt(), any())).thenReturn(List.of(AdminGetUserDto.getFromUser(getUser())));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/admin/")
+                        .param("page", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/admin/")
+                        .param("search", "username")
+                        .param("pageSize", "10"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/admin/")
+                        .param("search", "username")
+                        .param("page", "0"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/user/admin/")
+                        .param("search", "username")
+                        .param("page", "0")
+                        .param("pageSize", "invalid"))
                 .andExpect(status().isBadRequest());
     }
 }

@@ -12,6 +12,7 @@ import io.github.capure.voltcore.repository.UserRepository;
 import io.github.capure.voltcore.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,7 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -41,6 +42,31 @@ public class UserService {
     private JwtUtil jwtUtil;
 
     @PreAuthorize("hasRole('ADMIN')")
+    public List<AdminGetUserDto> adminGetAll(String search, int pageNumber, int pageSize, Boolean enabled) {
+        List<User> users;
+        if (enabled == null)
+            users = userRepository.findAllByUsernameLikeIgnoreCase(search, PageRequest.of(pageNumber, pageSize));
+        else
+            users = userRepository.findAllByEnabledAndUsernameLikeIgnoreCase(enabled, search, PageRequest.of(pageNumber, pageSize));
+        return users.parallelStream().map(AdminGetUserDto::getFromUser).toList();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public AdminGetUserDto adminGet(Long id) throws InvalidIdException {
+        return AdminGetUserDto.getFromUser(userRepository.findById(id).orElseThrow(InvalidIdException::new));
+    }
+
+    public List<GetUserDto> getAll(String search, int pageNumber, int pageSize) {
+        List<User> users = userRepository.findAllByEnabledAndUsernameLikeIgnoreCase(true, search, PageRequest.of(pageNumber, pageSize));
+        return users.parallelStream().map(GetUserDto::getFromUser).toList();
+    }
+
+    public GetUserDto get(Long id) throws InvalidIdException {
+        User user = userRepository.findById(id).orElseThrow(InvalidIdException::new);
+        return GetUserDto.getFromUser(user);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     public void adminUpdate(Long id, AdminPutUserDto data) throws InvalidIdException, FailedUpdateException {
         User user = userRepository.findById(id).orElseThrow(InvalidIdException::new);
         try {
@@ -59,17 +85,6 @@ public class UserService {
             log.error("Update failed", e);
             throw new FailedUpdateException();
         }
-
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    public AdminGetUserDto adminGet(Long id) throws InvalidIdException {
-        return AdminGetUserDto.getFromUser(userRepository.findById(id).orElseThrow(InvalidIdException::new));
-    }
-
-    public GetUserDto get(Long id) throws InvalidIdException {
-        User user = userRepository.findById(id).orElseThrow(InvalidIdException::new);
-        return GetUserDto.getFromUser(user);
     }
 
     @PreAuthorize("#id == authentication.principal.id")
