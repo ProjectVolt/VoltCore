@@ -10,7 +10,7 @@
   </component>
   <component name="PersistenceUnitSettings">
     <persistence-units>
-      <persistence-unit name="Default">
+      <persistence-unit name="Default" defaultIncludeChangeLogFile="src/main/resources/db/changelog/2024/03/07-01-changelog.xml">
         <packages>
           <package value="io.github.capure.voltcore" />
         </packages>
