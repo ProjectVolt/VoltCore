@@ -292,6 +292,21 @@ public class UserServiceTest {
 
     @Test
     @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldLetLoggedInUserUpdateTheirProfileWithEmptyFieldedDto() {
+        PutUserDto putData = new PutUserDto("abcdef", "", "Test school");
+        Mockito.when(userRepository.findById(getUser().getId())).thenAnswer(a -> Optional.of(getUser()));
+        AtomicReference<User> saved = new AtomicReference<>();
+        Mockito.doAnswer(a -> {
+            saved.set(a.getArgument(0));
+            return null;
+        }).when(userRepository).save(any());
+
+        assertDoesNotThrow(() -> userService.update(getUser().getId(), putData));
+        assertNull(saved.get().getGithub());
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "tester", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     public void shouldThrowInvalidIdExceptionForUserUpdate() {
         PutUserDto putData = new PutUserDto("abcdef", "Capure", "Volt LO");
         assertThrows(InvalidIdException.class, () -> userService.update(getUser().getId(), putData));
@@ -375,6 +390,22 @@ public class UserServiceTest {
         assertDoesNotThrow(() -> userService.adminUpdate(getUser().getId(), putData));
 
         assertTrue(passwordEncoder.matches(putData.getPassword(), saved.get().getPassword()));
+    }
+
+    @Test
+    @WithUserDetails(userDetailsServiceBeanName = "userDetailsServiceImpl", value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    public void shouldUpdateProfileWithEmptyFieldedDtoForAdminUserUpdate() {
+        AdminPutUserDto putData = new AdminPutUserDto();
+        putData.setGithub("");
+        Mockito.when(userRepository.findById(getUser().getId())).thenAnswer(a -> Optional.of(getUser()));
+        AtomicReference<User> saved = new AtomicReference<>();
+        Mockito.doAnswer(a -> {
+            saved.set(a.getArgument(0));
+            return null;
+        }).when(userRepository).save(any());
+
+        assertDoesNotThrow(() -> userService.adminUpdate(getUser().getId(), putData));
+        assertNull(saved.get().getGithub());
     }
 
     @Test

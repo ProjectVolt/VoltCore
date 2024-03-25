@@ -76,8 +76,12 @@ public class UserService {
             if (data.getEnabled() != null) user.setEnabled(data.getEnabled());
             if (data.getRole() != null && !data.getRole().isEmpty()) user.setRole(data.getRole());
             if (data.getAvatar() != null && !data.getAvatar().isEmpty()) user.setAvatar(data.getAvatar());
-            if (data.getGithub() != null && !data.getGithub().isEmpty()) user.setGithub(data.getGithub());
-            if (data.getSchool() != null && !data.getSchool().isEmpty()) user.setSchool(data.getSchool());
+            if (data.getGithub() != null) {
+                user.setGithub(!data.getGithub().isEmpty() ? data.getGithub() : null);
+            }
+            if (data.getSchool() != null) {
+                user.setSchool(!data.getSchool().isEmpty() ? data.getSchool() : null);
+            }
             log.info("Updating user {}...", id);
             userRepository.save(user);
             log.info("Update successful");
@@ -92,8 +96,12 @@ public class UserService {
     public void update(Long id, PutUserDto data) throws InvalidIdException, FailedUpdateException {
         User user = userRepository.findById(id).orElseThrow(InvalidIdException::new);
         if (data.getAvatar() != null && !data.getAvatar().isEmpty()) user.setAvatar(data.getAvatar());
-        if (data.getGithub() != null && !data.getGithub().isEmpty()) user.setGithub(data.getGithub());
-        if (data.getSchool() != null && !data.getSchool().isEmpty()) user.setSchool(data.getSchool());
+        if (data.getGithub() != null) {
+            user.setGithub(!data.getGithub().isEmpty() ? data.getGithub() : null);
+        }
+        if (data.getSchool() != null) {
+            user.setSchool(!data.getSchool().isEmpty() ? data.getSchool() : null);
+        }
         log.info("Updating user {}...", id);
         try {
             userRepository.save(user);
