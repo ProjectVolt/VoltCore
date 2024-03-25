@@ -39,5 +39,6 @@
             <column name="total_score" type="INT"/>
         </createTable>
     </changeSet>
+    <include file="db/changelog/2024/03/25-01-changelog.xml"/>
 
 </databaseChangeLog>
