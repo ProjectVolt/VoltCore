@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,4 +21,6 @@ public class Tag {
     @Nonnull
     @Column(unique = true)
     private String name;
+    @ManyToMany(mappedBy = "tags")
+    private Set<Problem> problems;
 }
