@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -155,7 +156,8 @@ public class UserService {
                 registerData.getSchool(),
                 0,
                 0,
-                0);
+                0,
+                Set.of());
         try {
             userRepository.save(user);
             log.info("User registered - [{}] {}", registerData.getEmail(), registerData.getUsername());

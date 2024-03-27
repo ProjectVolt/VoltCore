@@ -18,10 +18,12 @@ public class Problem {
     private boolean visible;
     @NotNull
     private String name;
+    @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
     @NotNull
     private String languages;
+    @Lob
     @Column(columnDefinition = "TEXT")
     private String template;
     @ManyToOne

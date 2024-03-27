@@ -36,6 +36,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -78,7 +79,8 @@ public class UserServiceTest {
                 null,
                 0,
                 0,
-                0);
+                0,
+                Set.of());
     }
 
     private User getAdmin() {
@@ -93,7 +95,8 @@ public class UserServiceTest {
                 null,
                 0,
                 0,
-                0);
+                0,
+                Set.of());
     }
 
     private UserRegisterDto getRegisterData() {

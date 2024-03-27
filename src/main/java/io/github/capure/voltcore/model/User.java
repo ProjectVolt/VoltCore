@@ -48,7 +48,6 @@ public class User implements UserDetails {
     private Integer submissionCount;
     @NotNull
     private Integer totalScore;
-    @NotNull
     @OneToMany(mappedBy = "addedBy")
     private Set<Problem> problems;
 

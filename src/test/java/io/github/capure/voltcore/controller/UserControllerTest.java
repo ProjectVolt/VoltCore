@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -72,7 +73,8 @@ public class UserControllerTest {
                 null,
                 0,
                 0,
-                0);
+                0,
+                Set.of());
     }
 
     private static String repeatChar(int size, char ch) {

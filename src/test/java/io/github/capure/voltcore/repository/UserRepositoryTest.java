@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,7 +32,8 @@ public class UserRepositoryTest {
                 null,
                 0,
                 0,
-                0);
+                0,
+                Set.of());
     }
 
     @Test
@@ -75,10 +77,10 @@ public class UserRepositoryTest {
         }
         List<User> results = assertDoesNotThrow(() -> userRepository.findAllByUsernameLikeIgnoreCase("%tes%", PageRequest.of(0, 10)));
         assertEquals(10, results.size());
-        assertEquals(getUser().getUsername()+9, results.getLast().getUsername());
+        assertEquals(getUser().getUsername() + 9, results.getLast().getUsername());
         results = assertDoesNotThrow(() -> userRepository.findAllByUsernameLikeIgnoreCase("%tes%", PageRequest.of(1, 10)));
         assertEquals(10, results.size());
-        assertEquals(getUser().getUsername()+19, results.getLast().getUsername());
+        assertEquals(getUser().getUsername() + 19, results.getLast().getUsername());
     }
 
     @Test
@@ -93,9 +95,9 @@ public class UserRepositoryTest {
         }
         List<User> results = assertDoesNotThrow(() -> userRepository.findAllByEnabledAndUsernameLikeIgnoreCase(true, "%tes%", PageRequest.of(0, 10)));
         assertEquals(10, results.size());
-        assertEquals(getUser().getUsername()+18, results.getLast().getUsername());
+        assertEquals(getUser().getUsername() + 18, results.getLast().getUsername());
         results = assertDoesNotThrow(() -> userRepository.findAllByEnabledAndUsernameLikeIgnoreCase(true, "%tes%", PageRequest.of(1, 10)));
         assertEquals(10, results.size());
-        assertEquals(getUser().getUsername()+38, results.getLast().getUsername());
+        assertEquals(getUser().getUsername() + 38, results.getLast().getUsername());
     }
 }

@@ -20,8 +20,10 @@ public class TestCase {
     private Problem problem;
     @Column(nullable = false)
     private String name;
+    @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     private String input;
+    @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     private String output;
     @Column(nullable = false)

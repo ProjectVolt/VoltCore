@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -23,7 +24,7 @@ public class TagService {
     public GetTagDto create(String name) throws FailedCreateException {
         try {
             log.info("Adding new tag - {}", name);
-            Tag result = tagRepository.save(new Tag(null, name));
+            Tag result = tagRepository.save(new Tag(null, name, Set.of()));
             log.info("Added tag successfully");
             return new GetTagDto(result);
         } catch (DataIntegrityViolationException ex) {
