@@ -2,6 +2,7 @@ package io.github.capure.voltcore.service;
 
 import io.github.capure.voltcore.dto.GetTagDto;
 import io.github.capure.voltcore.exception.FailedCreateException;
+import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.model.Tag;
 import io.github.capure.voltcore.repository.TagRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,10 @@ public class TagService {
             log.info("Returning tag from database");
             return new GetTagDto(result);
         }
+    }
+
+    Tag getById(Long id) throws InvalidIdException {
+        return tagRepository.findById(id).orElseThrow(InvalidIdException::new);
     }
 
     public List<GetTagDto> getAll(String search, int pageNumber, int pageSize) {
