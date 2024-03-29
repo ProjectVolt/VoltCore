@@ -38,7 +38,7 @@ import static org.hamcrest.Matchers.is;
 @WebMvcTest
 @Import(SecurityConfig.class)
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {TagServiceTest.class, TagController.class, JwtUtil.class, UserDetailsServiceImpl.class})
+@ContextConfiguration(classes = {TagService.class, TagController.class, JwtUtil.class, UserDetailsServiceImpl.class})
 public class TagControllerTest {
     @Autowired
     private MockMvc mockMvc;

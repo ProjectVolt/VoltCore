@@ -4,6 +4,7 @@ import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
 import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
+import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
 import io.github.capure.voltcore.model.Problem;
 import io.github.capure.voltcore.model.Tag;
 import io.github.capure.voltcore.model.TestCase;
@@ -35,6 +36,7 @@ public class ProblemService {
     ProblemRepository problemRepository;
 
     @PreAuthorize("(#visible != null && #visible) || hasRole('ADMIN')")
+    @Transactional
     public List<GetProblemDto> getAll(Boolean visible, String search, int page, int pageSize) {
         if (visible == null) {
             return problemRepository.findAllByNameLikeIgnoreCase(search, PageRequest.of(page, pageSize)).parallelStream().map(GetProblemDto::new).toList();
@@ -50,7 +52,7 @@ public class ProblemService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public void create(CreateProblemDto data, User user) {
+    public GetProblemDto create(CreateProblemDto data, User user) {
         Problem problem = new Problem();
 
         log.info("Adding new problem - name: {} addedBy: {} - {}", data.getName(), user.getId(), user.getUsername());
@@ -81,7 +83,7 @@ public class ProblemService {
                 return tagService.getById(tId);
             } catch (InvalidIdException e) {
                 log.info("Encountered a tag with an invalid id");
-                throw new RuntimeException(e);
+                throw new InvalidIdRuntimeException();
             }
         }).collect(Collectors.toSet());
         problem.setTags(tags);
@@ -100,7 +102,8 @@ public class ProblemService {
         saved.setTestCases(createdTestCases);
 
         log.info("Saving the final problem data");
-        problemRepository.save(saved);
+        saved = problemRepository.save(saved);
         log.info("Successfully created the problem");
+        return new GetProblemDto(saved);
     }
 }

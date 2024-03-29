@@ -17,14 +17,14 @@ public class CreateProblemDto {
     private boolean visible;
     @NotNull
     @Size(min = 3, max = 50)
-    @Pattern(regexp = "^[a-zA-Z0-9]+$")
+    @Pattern(regexp = "^[a-zA-Z0-9 ]+$")
     private String name;
     @NotNull
     @Size(min = 2, max = 10000)
     private String description;
     @NotNull
     @Size(min = 1, max = 3)
-    private List<@Pattern(regexp = "^(\bpython\b)|(\bcpp\b)|(\bc\b)+$") String> languages;
+    private List<@Pattern(regexp = "(python)|(cpp)|(c)") String> languages;
     @Size(min = 1, max = 10000)
     private String template;
     @NotNull
@@ -36,7 +36,7 @@ public class CreateProblemDto {
     @Max(2000)
     private int memoryLimit;
     @NotNull
-    @Pattern(regexp = "^(\beasy\b)|(\bmedium\b)|(\bhard\b)+$")
+    @Pattern(regexp = "(easy)|(medium)|(hard)")
     private String difficulty;
     @NotNull
     private List<@Min(1) Long> tags;

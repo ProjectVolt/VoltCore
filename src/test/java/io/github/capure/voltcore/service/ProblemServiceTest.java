@@ -4,6 +4,7 @@ import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
 import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
+import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
 import io.github.capure.voltcore.model.Problem;
 import io.github.capure.voltcore.model.Tag;
 import io.github.capure.voltcore.model.TestCase;
@@ -202,10 +203,12 @@ public class ProblemServiceTest {
             return new TestCase(1L, p, testCaseData.getName(), testCaseData.getInput(), testCaseData.getOutput(), testCaseData.getMaxScore());
         });
 
-        assertDoesNotThrow(() -> problemService.create(data, getUser()));
+        GetProblemDto result = assertDoesNotThrow(() -> problemService.create(data, getUser()));
 
         assertEquals(2, savedCalled.get(), "save should be called before and after adding test cases");
         assertEquals(1, createCalled.get(), "test case should be created");
+        assertEquals(data.getName(), result.getName(), "result should match the initial data");
+        assertEquals(saved.get().getId(), result.getId(), "result should have the same id as saved");
         assertEquals(data.isVisible(), saved.get().isVisible());
         assertEquals(data.getName(), saved.get().getName());
         assertEquals(data.getDescription(), saved.get().getDescription());
@@ -270,7 +273,7 @@ public class ProblemServiceTest {
             return new TestCase(1L, p, testCaseData.getName(), testCaseData.getInput(), testCaseData.getOutput(), testCaseData.getMaxScore());
         });
 
-        assertThrows(RuntimeException.class, () -> problemService.create(data, getUser()));
+        assertThrows(InvalidIdRuntimeException.class, () -> problemService.create(data, getUser()));
     }
 
     @Test
