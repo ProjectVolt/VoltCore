@@ -1,0 +1,3 @@
+[submodule "VoltDynamo"]
+	path = VoltDynamo
+	url = https://github.com/ProjectVolt/VoltDynamo.git
