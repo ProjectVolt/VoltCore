@@ -220,7 +220,7 @@ public class ProblemServiceTest {
         assertEquals(data.getDifficulty(), saved.get().getDifficulty());
         assertEquals(data.getAuthor(), saved.get().getAuthor());
         assertEquals(data.getTransparentTestCases(), saved.get().getTransparentTestCases());
-        assertEquals(0, saved.get().getTotalScore());
+        assertEquals(data.getTestCases().stream().map(CreateTestCaseDto::getMaxScore).reduce(0, Integer::sum), saved.get().getTotalScore());
         assertEquals(0, saved.get().getSubmissionCount());
         assertEquals(0, saved.get().getAcceptedSubmissions());
         assertEquals(0, saved.get().getPartiallyAccepted());

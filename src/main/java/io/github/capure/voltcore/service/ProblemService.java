@@ -51,7 +51,7 @@ public class ProblemService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @Transactional
+    @Transactional("transactionManager")
     public GetProblemDto create(CreateProblemDto data, User user) {
         Problem problem = new Problem();
 
@@ -100,6 +100,7 @@ public class ProblemService {
             createdTestCases.add(testCaseService.create(testCase, saved));
         }
         saved.setTestCases(createdTestCases);
+        saved.setTotalScore(createdTestCases.stream().map(TestCase::getMaxScore).reduce(0, Integer::sum));
 
         log.info("Saving the final problem data");
         saved = problemRepository.save(saved);
