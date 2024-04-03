@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,19 +36,42 @@ public class ProblemService {
     @Autowired
     ProblemRepository problemRepository;
 
+    private String toBase64(String in) {
+        if (in == null) return null;
+        return Base64.getEncoder().encodeToString(in.getBytes());
+    }
+
+    private String fromBase64(String in) {
+        if (in == null) return null;
+        return new String(Base64.getDecoder().decode(in));
+    }
+
     @PreAuthorize("(#visible != null && #visible) || hasRole('ADMIN')")
     @Transactional
     public List<GetProblemDto> getAll(Boolean visible, String search, int page, int pageSize) {
         if (visible == null) {
-            return problemRepository.findAllByNameLikeIgnoreCase(search, PageRequest.of(page, pageSize)).parallelStream().map(GetProblemDto::new).toList();
+            return problemRepository.findAllByNameLikeIgnoreCase(search, PageRequest.of(page, pageSize)).parallelStream()
+                    .peek(problem -> {
+                        problem.setDescription(fromBase64(problem.getDescription()));
+                        problem.setTemplate(fromBase64(problem.getTemplate()));
+                    })
+                    .map(GetProblemDto::new).toList();
         } else {
-            return problemRepository.findAllByVisibleAndNameLikeIgnoreCase(visible, search, PageRequest.of(page, pageSize)).parallelStream().map(GetProblemDto::new).toList();
+            return problemRepository.findAllByVisibleAndNameLikeIgnoreCase(visible, search, PageRequest.of(page, pageSize)).parallelStream()
+                    .peek(problem -> {
+                        problem.setDescription(fromBase64(problem.getDescription()));
+                        problem.setTemplate(fromBase64(problem.getTemplate()));
+                    })
+                    .map(GetProblemDto::new).toList();
         }
     }
 
     @PostAuthorize("returnObject.isVisible() || hasRole('ADMIN')")
     public GetProblemDto get(Long id) throws InvalidIdException {
-        return new GetProblemDto(problemRepository.findById(id).orElseThrow(InvalidIdException::new));
+        Problem problem = problemRepository.findById(id).orElseThrow(InvalidIdException::new);
+        problem.setDescription(fromBase64(problem.getDescription()));
+        problem.setTemplate(fromBase64(problem.getTemplate()));
+        return new GetProblemDto(problem);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -59,9 +83,9 @@ public class ProblemService {
 
         problem.setVisible(data.isVisible());
         problem.setName(data.getName());
-        problem.setDescription(data.getDescription());
+        problem.setDescription(toBase64(data.getDescription()));
         problem.setLanguages(String.join(";", data.getLanguages()));
-        problem.setTemplate(data.getTemplate());
+        problem.setTemplate(toBase64(data.getTemplate()));
         problem.setAddedBy(user);
         problem.setTimeLimit(data.getTimeLimit());
         problem.setMemoryLimit(data.getMemoryLimit());

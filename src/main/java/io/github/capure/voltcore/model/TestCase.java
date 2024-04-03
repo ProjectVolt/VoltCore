@@ -1,5 +1,6 @@
 package io.github.capure.voltcore.model;
 
+import io.github.capure.schema.TestCaseEventDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,6 +32,10 @@ public class TestCase {
     private String output;
     @Column(nullable = false)
     private int maxScore;
+
+    public TestCaseEventDetails toAvro() {
+        return new TestCaseEventDetails(this.getId(), this.problem.getId(), this.getName(), this.getInput(), this.getOutput(), this.getMaxScore());
+    }
 
     @Override
     public final boolean equals(Object o) {

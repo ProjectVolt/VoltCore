@@ -26,6 +26,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -124,6 +125,8 @@ public class ProblemServiceTest {
     public void getShouldWorkForVisibleAndNormalUser() {
         Problem problem = new Problem();
         problem.setId(5L);
+        problem.setDescription(Base64.getEncoder().encodeToString("test".getBytes()));
+        problem.setTemplate(Base64.getEncoder().encodeToString("test".getBytes()));
         problem.setLanguages("python");
         problem.setAddedBy(getUser());
         problem.setTestCases(Set.of());
@@ -134,6 +137,8 @@ public class ProblemServiceTest {
         GetProblemDto problemDto = assertDoesNotThrow(() -> problemService.get(5L));
 
         assertEquals(5L, problemDto.getId());
+        assertEquals("test", problemDto.getDescription());
+        assertEquals("test", problemDto.getTemplate());
     }
 
     @Test
@@ -211,7 +216,7 @@ public class ProblemServiceTest {
         assertEquals(saved.get().getId(), result.getId(), "result should have the same id as saved");
         assertEquals(data.isVisible(), saved.get().isVisible());
         assertEquals(data.getName(), saved.get().getName());
-        assertEquals(data.getDescription(), saved.get().getDescription());
+        assertEquals(Base64.getEncoder().encodeToString(data.getDescription().getBytes()), saved.get().getDescription());
         assertEquals(String.join(";", data.getLanguages()), saved.get().getLanguages());
         assertEquals(data.getTemplate(), saved.get().getTemplate());
         assertEquals(getUser().getUsername(), saved.get().getAddedBy().getUsername());
