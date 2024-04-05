@@ -2,6 +2,7 @@ package io.github.capure.voltcore.service;
 
 import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
+import io.github.capure.voltcore.dto.admin.AdminGetProblemDto;
 import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
@@ -179,6 +180,46 @@ public class ProblemServiceTest {
         when(problemRepository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(InvalidIdException.class, () -> problemService.get(5L));
+    }
+
+    @Test
+    @WithMockUser
+    public void adminGetShouldThrowForNormalUser() {
+        assertThrows(AccessDeniedException.class, () -> problemService.adminGet(1L));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminGetShouldWorkForAdminUser() {
+        Problem problem = new Problem();
+        problem.setId(5L);
+        problem.setDescription(Base64.getEncoder().encodeToString("test".getBytes()));
+        problem.setTemplate(Base64.getEncoder().encodeToString("test".getBytes()));
+        problem.setLanguages("python");
+        problem.setAddedBy(getUser());
+        problem.setTestCases(Set.of(new TestCase(1L, null, "test case 1",
+                Base64.getEncoder().encodeToString("in".getBytes()),
+                Base64.getEncoder().encodeToString("out".getBytes()),
+                10)));
+        problem.setTags(Set.of());
+        problem.setVisible(true);
+        when(problemRepository.findById(any())).thenReturn(Optional.of(problem));
+
+        AdminGetProblemDto problemDto = assertDoesNotThrow(() -> problemService.adminGet(5L));
+
+        assertEquals(5L, problemDto.getId());
+        assertEquals("test", problemDto.getDescription());
+        assertEquals("test", problemDto.getTemplate());
+        assertEquals("in", problemDto.getTestCases().getFirst().getInput());
+        assertEquals("out", problemDto.getTestCases().getFirst().getOutput());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminGetShouldThrowForInvalidId() {
+        when(problemRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(InvalidIdException.class, () -> problemService.adminGet(5L));
     }
 
     @Test

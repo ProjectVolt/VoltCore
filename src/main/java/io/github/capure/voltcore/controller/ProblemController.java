@@ -2,6 +2,7 @@ package io.github.capure.voltcore.controller;
 
 import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
+import io.github.capure.voltcore.dto.admin.AdminGetProblemDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
 import io.github.capure.voltcore.model.User;
@@ -45,6 +46,11 @@ public class ProblemController {
     @GetMapping("/{id}")
     public GetProblemDto getById(@Valid @PathVariable Long id) throws InvalidIdException {
         return problemService.get(id);
+    }
+
+    @GetMapping("/admin/{id}")
+    public AdminGetProblemDto adminGetById(@Valid @PathVariable Long id) throws InvalidIdException {
+        return problemService.adminGet(id);
     }
 
     @GetMapping("/")

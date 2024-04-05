@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.capure.voltcore.config.SecurityConfig;
 import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
+import io.github.capure.voltcore.dto.admin.AdminGetProblemDto;
 import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.service.ProblemService;
@@ -223,6 +224,34 @@ public class ProblemControllerTest {
 
         ServletException ex = assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
                 .get("/api/problem/13")));
+
+        assertEquals(ex.getRootCause().getClass(), InvalidIdException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminGetByIdShouldSend200AndReturnProblemForValidData() throws Exception {
+        CreateProblemDto data = getData();
+        AdminGetProblemDto getProblemDto = new AdminGetProblemDto();
+        getProblemDto.setName(data.getName());
+        Mockito.when(problemService.adminGet(any())).thenReturn(getProblemDto);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/problem/admin/1"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(data.getName())));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void adminGetByIdShouldSend400ForInvalidOrMissingId() throws Exception {
+        Mockito.when(problemService.adminGet(any())).thenThrow(InvalidIdException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/problem/admin/a"))
+                .andExpect(status().isBadRequest());
+
+        ServletException ex = assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
+                .get("/api/problem/admin/13")));
 
         assertEquals(ex.getRootCause().getClass(), InvalidIdException.class);
     }

@@ -2,6 +2,7 @@ package io.github.capure.voltcore.service;
 
 import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
+import io.github.capure.voltcore.dto.admin.AdminGetProblemDto;
 import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
@@ -72,6 +73,18 @@ public class ProblemService {
         problem.setDescription(fromBase64(problem.getDescription()));
         problem.setTemplate(fromBase64(problem.getTemplate()));
         return new GetProblemDto(problem);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional("transactionManager")
+    public AdminGetProblemDto adminGet(Long id) throws InvalidIdException {
+        Problem problem = problemRepository.findById(id).orElseThrow(InvalidIdException::new);
+        problem.setDescription(fromBase64(problem.getDescription()));
+        problem.setTemplate(fromBase64(problem.getTemplate()));
+        problem.setTestCases(problem.getTestCases().stream()
+                .peek(t -> t.setInput(fromBase64(t.getInput())))
+                .peek(t -> t.setOutput(fromBase64(t.getOutput()))).collect(Collectors.toSet()));
+        return new AdminGetProblemDto(problem);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
