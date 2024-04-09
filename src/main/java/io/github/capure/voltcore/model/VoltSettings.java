@@ -1,6 +1,5 @@
 package io.github.capure.voltcore.model;
 
-import jakarta.annotation.Nonnull;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,13 +15,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class VoltSettings {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Nonnull @NotNull @Size(min=2, max=20)
+    @NotNull
+    @Size(min = 2, max = 20)
     private String deploymentName;
-    @Nonnull @NotNull @Size(min=3)
+    @NotNull
+    @Size(min = 3)
     private String deploymentBaseUrl;
-    @Nonnull @NotNull
+    @NotNull
     private Boolean allowRegister;
 
     public static VoltSettings getDefault() {

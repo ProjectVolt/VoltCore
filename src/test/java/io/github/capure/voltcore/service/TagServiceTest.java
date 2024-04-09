@@ -16,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,14 +45,14 @@ public class TagServiceTest {
     @WithMockUser(roles = {"STAFF"})
     @Test
     public void createShouldWorkForStaffUserRole() {
-        when(tagRepository.save(any())).thenReturn(new Tag(1L, "temp"));
+        when(tagRepository.save(any())).thenReturn(new Tag(1L, "temp", Set.of()));
         assertDoesNotThrow(() -> tagService.create("temp"));
     }
 
     @WithMockUser(roles = {"ADMIN"})
     @Test
     public void createShouldWorkForAdminUserRole() {
-        when(tagRepository.save(any())).thenReturn(new Tag(1L, "temp"));
+        when(tagRepository.save(any())).thenReturn(new Tag(1L, "temp", Set.of()));
         assertDoesNotThrow(() -> tagService.create("temp"));
     }
 
@@ -59,7 +60,7 @@ public class TagServiceTest {
     @Test
     public void createShouldReturnTagWithCorrectData() {
         String name = "temp";
-        when(tagRepository.save(any())).thenReturn(new Tag(1L, name));
+        when(tagRepository.save(any())).thenReturn(new Tag(1L, name, Set.of()));
 
         GetTagDto result = assertDoesNotThrow(() -> tagService.create(name));
 
@@ -71,7 +72,7 @@ public class TagServiceTest {
     public void createShouldReturnTagWithCorrectDataEvenIfTagAlreadyExists() {
         String name = "temp";
         when(tagRepository.save(any())).thenThrow(DataIntegrityViolationException.class);
-        when(tagRepository.findByName(name)).thenReturn(Optional.of(new Tag(1L, name)));
+        when(tagRepository.findByName(name)).thenReturn(Optional.of(new Tag(1L, name, Set.of())));
 
         GetTagDto result = assertDoesNotThrow(() -> tagService.create(name));
 

@@ -19,13 +19,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 
 import java.util.Date;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { JwtUtil.class }, initializers = { ConfigDataApplicationContextInitializer.class })
+@ContextConfiguration(classes = {JwtUtil.class}, initializers = {ConfigDataApplicationContextInitializer.class})
 public class JwtUtilTest {
     @Autowired
     private JwtUtil jwtUtil;
@@ -52,8 +53,10 @@ public class JwtUtilTest {
                 null,
                 0,
                 0,
-                0);
+                0,
+                Set.of());
     }
+
     @Test
     public void shouldGenerateTokenForValidUserDetails() {
         UserDetails userDetails = getUser();

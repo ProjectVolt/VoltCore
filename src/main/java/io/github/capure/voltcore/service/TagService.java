@@ -2,6 +2,7 @@ package io.github.capure.voltcore.service;
 
 import io.github.capure.voltcore.dto.GetTagDto;
 import io.github.capure.voltcore.exception.FailedCreateException;
+import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.model.Tag;
 import io.github.capure.voltcore.repository.TagRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -23,7 +25,7 @@ public class TagService {
     public GetTagDto create(String name) throws FailedCreateException {
         try {
             log.info("Adding new tag - {}", name);
-            Tag result = tagRepository.save(new Tag(null, name));
+            Tag result = tagRepository.save(new Tag(null, name, Set.of()));
             log.info("Added tag successfully");
             return new GetTagDto(result);
         } catch (DataIntegrityViolationException ex) {
@@ -35,6 +37,10 @@ public class TagService {
             log.info("Returning tag from database");
             return new GetTagDto(result);
         }
+    }
+
+    Tag getById(Long id) throws InvalidIdException {
+        return tagRepository.findById(id).orElseThrow(InvalidIdException::new);
     }
 
     public List<GetTagDto> getAll(String search, int pageNumber, int pageSize) {

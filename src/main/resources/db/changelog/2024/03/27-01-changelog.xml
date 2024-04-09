@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1711531997100-9" author="stola (generated)">
+        <createSequence incrementBy="50" sequenceName="problem_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1711531997100-10" author="stola (generated)">
+        <createSequence incrementBy="50" sequenceName="test_case_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1711531997100-11" author="stola (generated)">
+        <createTable tableName="problem">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_problem"/>
+            </column>
+            <column name="visible" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="languages" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="template" type="TEXT"/>
+            <column name="added_by_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time_limit" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="memory_limit" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="difficulty" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author" type="VARCHAR(255)"/>
+            <column name="transparent_test_cases" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_score" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="submission_count" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="accepted_submissions" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="wrong_submissions" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="partially_accepted" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="runtime_errors" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="compile_errors" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1711531997100-12" author="stola (generated)">
+        <createTable tableName="problem_tags">
+            <column name="problems_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_problem_tags"/>
+            </column>
+            <column name="tags_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_problem_tags"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1711531997100-13" author="stola (generated)">
+        <createTable tableName="test_case">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_testcase"/>
+            </column>
+            <column name="problem_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="input" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="output" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_score" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1711531997100-14" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="added_by_id" baseTableName="problem"
+                                 constraintName="FK_PROBLEM_ON_ADDED_BY" referencedColumnNames="id"
+                                 referencedTableName="volt_user"/>
+    </changeSet>
+    <changeSet id="1711531997100-15" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="problem_id" baseTableName="test_case"
+                                 constraintName="FK_TESTCASE_ON_PROBLEM" referencedColumnNames="id"
+                                 referencedTableName="problem"/>
+    </changeSet>
+    <changeSet id="1711531997100-16" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="problems_id" baseTableName="problem_tags"
+                                 constraintName="fk_protag_on_problem" referencedColumnNames="id"
+                                 referencedTableName="problem"/>
+    </changeSet>
+    <changeSet id="1711531997100-17" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="tags_id" baseTableName="problem_tags"
+                                 constraintName="fk_protag_on_tag" referencedColumnNames="id"
+                                 referencedTableName="tag"/>
+    </changeSet>
+    <changeSet id="1711531997100-1" author="stola (generated)">
+        <addNotNullConstraint columnDataType="INT" columnName="accepted_submissions" tableName="volt_user"
+                              validate="true"/>
+    </changeSet>
+    <changeSet id="1711531997100-2" author="stola (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="avatar" tableName="volt_user" validate="true"/>
+    </changeSet>
+    <changeSet id="1711531997100-3" author="stola (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="email" tableName="volt_user" validate="true"/>
+    </changeSet>
+    <changeSet id="1711531997100-4" author="stola (generated)">
+        <addNotNullConstraint columnDataType="BOOLEAN" columnName="enabled" tableName="volt_user" validate="true"/>
+    </changeSet>
+    <changeSet id="1711531997100-5" author="stola (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="role" tableName="volt_user" validate="true"/>
+    </changeSet>
+    <changeSet id="1711531997100-6" author="stola (generated)">
+        <addNotNullConstraint columnDataType="INT" columnName="submission_count" tableName="volt_user" validate="true"/>
+    </changeSet>
+    <changeSet id="1711531997100-7" author="stola (generated)">
+        <addNotNullConstraint columnDataType="INT" columnName="total_score" tableName="volt_user" validate="true"/>
+    </changeSet>
+    <changeSet id="1711531997100-8" author="stola (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="username" tableName="volt_user"
+                              validate="true"/>
+    </changeSet>
+
+</databaseChangeLog>

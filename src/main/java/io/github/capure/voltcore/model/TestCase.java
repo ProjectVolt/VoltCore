@@ -1,7 +1,7 @@
 package io.github.capure.voltcore.model;
 
+import io.github.capure.schema.TestCaseEventDetails;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,22 +9,33 @@ import lombok.Setter;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
-public class Tag {
+@AllArgsConstructor
+@NoArgsConstructor
+public class TestCase {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-    @NotNull
-    @Column(unique = true)
+    @ManyToOne
+    @JoinColumn(name = "problem_id", nullable = false)
+    private Problem problem;
+    @Column(nullable = false)
     private String name;
-    @ManyToMany(mappedBy = "tags")
-    private Set<Problem> problems;
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String input;
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String output;
+    @Column(nullable = false)
+    private int maxScore;
+
+    public TestCaseEventDetails toAvro() {
+        return new TestCaseEventDetails(this.getId(), this.problem.getId(), this.getName(), this.getInput(), this.getOutput(), this.getMaxScore());
+    }
 
     @Override
     public final boolean equals(Object o) {
@@ -33,8 +44,8 @@ public class Tag {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Tag tag = (Tag) o;
-        return getId() != null && Objects.equals(getId(), tag.getId());
+        TestCase testCase = (TestCase) o;
+        return getId() != null && Objects.equals(getId(), testCase.getId());
     }
 
     @Override

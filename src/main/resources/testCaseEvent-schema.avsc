@@ -1,0 +1,55 @@
+{
+  "type": "record",
+  "name": "TestCaseEvent",
+  "namespace": "io.github.capure.schema",
+  "fields": [
+    {
+      "name": "type",
+      "type": {
+        "type": "enum",
+        "name": "TestCaseEventType",
+        "symbols": [
+          "ADD",
+          "DELETE"
+        ]
+      }
+    },
+    {
+      "name": "details",
+      "type": {
+        "type": "record",
+        "name": "TestCaseEventDetails",
+        "fields": [
+          {
+            "name": "id",
+            "type": "long"
+          },
+          {
+            "name": "problemId",
+            "type": "long"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "default": ""
+          },
+          {
+            "name": "input",
+            "type": "string",
+            "default": ""
+          },
+          {
+            "name": "output",
+            "type": "string",
+            "default": ""
+          },
+          {
+            "name": "maxScore",
+            "type": "int",
+            "default": 0
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -3,6 +3,7 @@ package io.github.capure.voltcore.model;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 @Table(name = "volt_user")
 @Entity
@@ -21,30 +23,33 @@ import java.util.Collections;
 @Setter
 @NoArgsConstructor
 public class User implements UserDetails {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Nonnull
+    @NotNull
     private String username;
     @Nullable
     private String password;
-    @Nonnull
+    @NotNull
     private String email;
-    @Nonnull
+    @NotNull
     private Boolean enabled;
-    @Nonnull
+    @NotNull
     private String role;
-    @Nonnull
+    @NotNull
     private String avatar;
     @Nullable
     private String github;
     @Nullable
     private String school;
-    @Nonnull
+    @NotNull
     private Integer acceptedSubmissions;
-    @Nonnull
+    @NotNull
     private Integer submissionCount;
-    @Nonnull
+    @NotNull
     private Integer totalScore;
+    @OneToMany(mappedBy = "addedBy")
+    private Set<Problem> problems;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

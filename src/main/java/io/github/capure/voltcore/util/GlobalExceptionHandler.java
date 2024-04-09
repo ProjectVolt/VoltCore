@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidIdException.class)
     public ResponseEntity<Map<String, List<String>>> handleInvalidId(InvalidIdException ex) {
-        return new ResponseEntity<>(getErrorsMap(List.of("Invalid id")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(getErrorsMap(List.of(ex.getMessage() != null ? ex.getMessage() : "Invalid id")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
