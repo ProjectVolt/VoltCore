@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1712670121270-1" author="stola (generated)">
+        <createSequence incrementBy="50" sequenceName="submission_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1712670121270-2" author="stola (generated)">
+        <createTable tableName="submission">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_submission"/>
+            </column>
+            <column name="problem_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_on" type="DATETIME"/>
+            <column name="added_by_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_code" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="language" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="compile_success" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="run_success" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="answer_success" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="compile_error_message" type="VARCHAR(255)"/>
+            <column name="compile_error_fatal" type="BOOLEAN"/>
+            <column name="max_cpu" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_memory" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1712670121270-3" author="stola (generated)">
+        <createTable tableName="test_result">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_testresult"/>
+            </column>
+            <column name="submission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="output" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cpu_time" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="real_time" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="memory" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signal" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="exit_code" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="error" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="result" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1712670121270-4" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="added_by_id" baseTableName="submission"
+                                 constraintName="FK_SUBMISSION_ON_ADDED_BY" referencedColumnNames="id"
+                                 referencedTableName="volt_user"/>
+    </changeSet>
+    <changeSet id="1712670121270-5" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="problem_id" baseTableName="submission"
+                                 constraintName="FK_SUBMISSION_ON_PROBLEM" referencedColumnNames="id"
+                                 referencedTableName="problem"/>
+    </changeSet>
+    <changeSet id="1712670121270-6" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="submission_id" baseTableName="test_result"
+                                 constraintName="FK_TESTRESULT_ON_SUBMISSION" referencedColumnNames="id"
+                                 referencedTableName="submission"/>
+    </changeSet>
+
+</databaseChangeLog>

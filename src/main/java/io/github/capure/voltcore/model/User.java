@@ -50,6 +50,8 @@ public class User implements UserDetails {
     private Integer totalScore;
     @OneToMany(mappedBy = "addedBy")
     private Set<Problem> problems;
+    @OneToMany(mappedBy = "addedBy")
+    private Set<Submission> submissions;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

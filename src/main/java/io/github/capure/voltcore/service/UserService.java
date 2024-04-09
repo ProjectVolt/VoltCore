@@ -157,6 +157,7 @@ public class UserService {
                 0,
                 0,
                 0,
+                Set.of(),
                 Set.of());
         try {
             userRepository.save(user);

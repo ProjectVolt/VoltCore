@@ -80,6 +80,7 @@ public class UserServiceTest {
                 0,
                 0,
                 0,
+                Set.of(),
                 Set.of());
     }
 
@@ -96,6 +97,7 @@ public class UserServiceTest {
                 0,
                 0,
                 0,
+                Set.of(),
                 Set.of());
     }
 
