@@ -1,6 +1,7 @@
 package io.github.capure.voltcore.dto;
 
 import io.github.capure.voltcore.model.Problem;
+import io.github.capure.voltcore.util.Base64Helper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,5 +55,11 @@ public class GetProblemDto {
         setPartiallyAccepted(p.getPartiallyAccepted());
         setRuntimeErrors(p.getRuntimeErrors());
         setCompileErrors(p.getCompileErrors());
+    }
+
+    public GetProblemDto decode() {
+        this.setDescription(Base64Helper.fromBase64(this.getDescription()));
+        this.setTemplate(Base64Helper.fromBase64(this.getTemplate()));
+        return this;
     }
 }

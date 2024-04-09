@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.capure.voltcore.config.SecurityConfig;
 import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
+import io.github.capure.voltcore.dto.PutProblemDto;
 import io.github.capure.voltcore.dto.admin.AdminGetProblemDto;
 import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
@@ -76,7 +77,7 @@ public class ProblemControllerTest {
     @WithMockUser(roles = {"ADMIN"})
     public void createShouldReturnGetProblemDtoForValidData() throws Exception {
         CreateProblemDto data = getData();
-        GetProblemDto getProblemDto = new GetProblemDto();
+        AdminGetProblemDto getProblemDto = new AdminGetProblemDto();
         getProblemDto.setName(data.getName());
         when(problemService.create(any(), any())).thenReturn(getProblemDto);
 
@@ -121,6 +122,61 @@ public class ProblemControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/api/problem/")
+                        .content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void editShouldReturnGetProblemDtoForValidData() throws Exception {
+        PutProblemDto data = new PutProblemDto();
+        AdminGetProblemDto getProblemDto = new AdminGetProblemDto();
+        getProblemDto.setName(data.getName());
+        when(problemService.edit(eq(1L), any())).thenReturn(getProblemDto);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/problem/1")
+                        .content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(data.getName())));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void editShouldReturn400ForInvalidData() throws Exception {
+        PutProblemDto data = new PutProblemDto();
+        data.setName("*A#");
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/problem/1")
+                        .content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void editShouldReturn400ForInvalidId() throws Exception {
+        PutProblemDto data = new PutProblemDto();
+        when(problemService.edit(eq(1L), any())).thenThrow(InvalidIdException.class);
+
+        ServletException ex = assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
+                .put("/api/problem/1")
+                .content(asJsonString(data))
+                .contentType(MediaType.APPLICATION_JSON)));
+
+        assertEquals(ex.getRootCause().getClass(), InvalidIdException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void editShouldReturn500ForDbError() throws Exception {
+        PutProblemDto data = new PutProblemDto();
+        when(problemService.edit(any(), any())).thenThrow(RuntimeException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/problem/1")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());

@@ -2,6 +2,7 @@ package io.github.capure.voltcore.controller;
 
 import io.github.capure.voltcore.dto.CreateProblemDto;
 import io.github.capure.voltcore.dto.GetProblemDto;
+import io.github.capure.voltcore.dto.PutProblemDto;
 import io.github.capure.voltcore.dto.admin.AdminGetProblemDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
@@ -29,9 +30,24 @@ public class ProblemController {
     private ProblemService problemService;
 
     @PostMapping("/")
-    public GetProblemDto create(HttpServletResponse response, @AuthenticationPrincipal User user, @Valid @RequestBody CreateProblemDto data) throws IOException {
+    public AdminGetProblemDto create(HttpServletResponse response, @AuthenticationPrincipal User user, @Valid @RequestBody CreateProblemDto data) throws IOException {
         try {
             return problemService.create(data, user);
+        } catch (InvalidIdRuntimeException ex) {
+            response.sendError(400, "Invalid tag id encountered");
+        } catch (AccessDeniedException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            log.error("Create failed", ex);
+            response.sendError(500, "Server error");
+        }
+        return null;
+    }
+
+    @PutMapping("/{id}")
+    public AdminGetProblemDto edit(HttpServletResponse response, @Valid @PathVariable Long id, @AuthenticationPrincipal User user, @Valid @RequestBody PutProblemDto data) throws IOException, InvalidIdException {
+        try {
+            return problemService.edit(id, data);
         } catch (InvalidIdRuntimeException ex) {
             response.sendError(400, "Invalid tag id encountered");
         } catch (AccessDeniedException ex) {
