@@ -1,0 +1,138 @@
+{
+  "type": "record",
+  "name": "AvroSubmissionResult",
+  "namespace": "io.github.capure.schema",
+  "fields": [
+    {
+      "name": "submissionId",
+      "type": "long"
+    },
+    {
+      "name": "problemId",
+      "type": "long"
+    },
+    {
+      "name": "compileSuccess",
+      "type": "boolean"
+    },
+    {
+      "name": "runSuccess",
+      "type": "boolean"
+    },
+    {
+      "name": "answerSuccess",
+      "type": "boolean"
+    },
+    {
+      "name": "compileError",
+      "type": {
+        "name": "AvroCompileError",
+        "type": "record",
+        "fields": [
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "fatal",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "name": "testResults",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "AvroTestCaseResult",
+          "fields": [
+            {
+              "name": "testCaseId",
+              "type": "long"
+            },
+            {
+              "name": "output",
+              "type": "string"
+            },
+            {
+              "name": "judgerResult",
+              "type": {
+                "name": "AvroJudgerResult",
+                "type": "record",
+                "fields": [
+                  {
+                    "name": "cpuTime",
+                    "type": "int"
+                  },
+                  {
+                    "name": "realTime",
+                    "type": "int"
+                  },
+                  {
+                    "name": "memory",
+                    "type": "int"
+                  },
+                  {
+                    "name": "signal",
+                    "type": "int"
+                  },
+                  {
+                    "name": "exitCode",
+                    "type": "int"
+                  },
+                  {
+                    "name": "error",
+                    "type": {
+                      "type": "enum",
+                      "name": "AvroJudgerResultError",
+                      "symbols": [
+                        "ERROR_NONE",
+                        "ERROR_INVALID_CONFIG",
+                        "ERROR_FORK_FAILED",
+                        "ERROR_PTHREAD_FAILED",
+                        "ERROR_WAIT_FAILED",
+                        "ERROR_ROOT_REQUIRED",
+                        "ERROR_LOAD_SECCOMP_FAILED",
+                        "ERROR_SETRLIMIT_FAILED",
+                        "ERROR_DUP2_FAILED",
+                        "ERROR_SETUID_FAILED",
+                        "ERROR_EXECVE_FAILED",
+                        "ERROR_SPJ_ERROR"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "result",
+                    "type": {
+                      "type": "enum",
+                      "name": "AvroJudgerResultCode",
+                      "symbols": [
+                        "RESULT_SUCCESS",
+                        "RESULT_WRONG_ANSWER",
+                        "RESULT_CPU_TIME_LIMIT_EXCEEDED",
+                        "RESULT_REAL_TIME_LIMIT_EXCEEDED",
+                        "RESULT_MEMORY_LIMIT_EXCEEDED",
+                        "RESULT_RUNTIME_ERROR",
+                        "RESULT_SYSTEM_ERROR"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "score",
+              "type": "int"
+            },
+            {
+              "name": "errorMessage",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

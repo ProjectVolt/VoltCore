@@ -1,6 +1,7 @@
 package io.github.capure.voltcore.util;
 
 import io.github.capure.voltcore.exception.InvalidIdException;
+import io.github.capure.voltcore.exception.ProblemNotVisibleException;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -48,6 +49,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidIdException.class)
     public ResponseEntity<Map<String, List<String>>> handleInvalidId(InvalidIdException ex) {
         return new ResponseEntity<>(getErrorsMap(List.of(ex.getMessage() != null ? ex.getMessage() : "Invalid id")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ProblemNotVisibleException.class)
+    public ResponseEntity<Map<String, List<String>>> handleProblemNotVisible(ProblemNotVisibleException ex) {
+        return new ResponseEntity<>(getErrorsMap(List.of(ex.getMessage() != null ? ex.getMessage() : "Problem is not publicly accessible, the visible property is set to false")), new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)

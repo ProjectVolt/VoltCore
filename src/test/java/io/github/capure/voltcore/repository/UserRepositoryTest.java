@@ -33,6 +33,7 @@ public class UserRepositoryTest {
                 0,
                 0,
                 0,
+                Set.of(),
                 Set.of());
     }
 

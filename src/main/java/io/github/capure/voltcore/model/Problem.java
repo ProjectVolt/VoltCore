@@ -46,6 +46,8 @@ public class Problem {
     private String author;
     @OneToMany(mappedBy = "problem")
     private Set<TestCase> testCases;
+    @OneToMany(mappedBy = "problem")
+    private Set<Submission> submissions;
     @NotNull
     private int transparentTestCases;
     @NotNull

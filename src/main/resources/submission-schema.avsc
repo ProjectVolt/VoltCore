@@ -1,0 +1,39 @@
+{
+  "type": "record",
+  "name": "AvroSubmission",
+  "namespace": "io.github.capure.schema",
+  "fields": [
+    {
+      "name": "submissionId",
+      "type": "long"
+    },
+    {
+      "name": "problemId",
+      "type": "long"
+    },
+    {
+      "name": "sourceCode",
+      "type": "string"
+    },
+    {
+      "name": "language",
+      "type": {
+        "name": "AvroLanguage",
+        "type": "enum",
+        "symbols": [
+          "C",
+          "CPP",
+          "PYTHON"
+        ]
+      }
+    },
+    {
+      "name": "timeLimit",
+      "type": "int"
+    },
+    {
+      "name": "memoryLimit",
+      "type": "int"
+    }
+  ]
+}

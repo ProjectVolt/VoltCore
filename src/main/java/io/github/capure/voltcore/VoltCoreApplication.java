@@ -16,6 +16,24 @@ public class VoltCoreApplication {
     }
 
     @Bean
+    public NewTopic submissionTopic() {
+        return TopicBuilder
+                .name("submissions")
+                .replicas(1)
+                .partitions(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic submissionResultTopic() {
+        return TopicBuilder
+                .name("submission_results")
+                .replicas(1)
+                .partitions(1)
+                .build();
+    }
+    
+    @Bean
     public NewTopic testCaseEditEventsTopic() {
         return TopicBuilder
                 .name("test_case_edit_events")

@@ -64,6 +64,7 @@ public class ProblemServiceTest {
                 0,
                 0,
                 0,
+                Set.of(),
                 Set.of());
     }
 
