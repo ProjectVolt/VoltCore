@@ -1,5 +1,7 @@
 package io.github.capure.voltcore.model;
 
+import io.github.capure.schema.AvroLanguage;
+import io.github.capure.schema.AvroSubmission;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -24,6 +26,7 @@ public class Submission {
     @JoinColumn(name = "problem_id", nullable = false)
     private Problem problem;
     @CreationTimestamp
+    @Column(name = "createdOn", updatable = false)
     private Instant createdOn;
     @ManyToOne
     @JoinColumn(name = "added_by_id", nullable = false)
@@ -51,4 +54,15 @@ public class Submission {
     private Integer maxMemory;
     @NotNull
     private Integer score;
+
+    public AvroSubmission toAvro() {
+        AvroLanguage lang = null;
+        switch (language) {
+            case "python" -> lang = AvroLanguage.PYTHON;
+            case "c" -> lang = AvroLanguage.C;
+            case "cpp" -> lang = AvroLanguage.CPP;
+        }
+        if (lang == null) throw new IllegalStateException("Invalid language");
+        return new AvroSubmission(id, problem.getId(), sourceCode, lang, problem.getTimeLimit(), problem.getMemoryLimit() * 1024 * 1024);
+    }
 }
