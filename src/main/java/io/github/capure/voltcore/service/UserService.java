@@ -93,7 +93,7 @@ public class UserService {
     }
 
     @PreAuthorize("#id == authentication.principal.id")
-    @Transactional
+    @Transactional("transactionManager")
     public void update(Long id, PutUserDto data) throws InvalidIdException, FailedUpdateException {
         User user = userRepository.findById(id).orElseThrow(InvalidIdException::new);
         if (data.getAvatar() != null && !data.getAvatar().isEmpty()) user.setAvatar(data.getAvatar());
@@ -114,7 +114,7 @@ public class UserService {
     }
 
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    @Transactional
+    @Transactional("transactionManager")
     public void delete(Long id) throws FailedDeletionException {
         try {
             int updated = userRepository.updateEnabledByUserId(id, false);

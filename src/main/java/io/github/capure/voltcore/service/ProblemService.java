@@ -39,7 +39,7 @@ public class ProblemService {
 
 
     @PreAuthorize("(#visible != null && #visible) || hasRole('ADMIN')")
-    @Transactional
+    @Transactional("transactionManager")
     public List<GetProblemDto> getAll(Boolean visible, String search, int page, int pageSize) {
         if (visible == null) {
             return problemRepository.findAllByNameLikeIgnoreCase(search, PageRequest.of(page, pageSize)).parallelStream()
