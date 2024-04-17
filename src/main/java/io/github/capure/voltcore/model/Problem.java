@@ -41,7 +41,7 @@ public class Problem {
     private int memoryLimit;
     @NotNull
     private String difficulty;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Tag> tags;
     private String author;
     @OneToMany(mappedBy = "problem")
