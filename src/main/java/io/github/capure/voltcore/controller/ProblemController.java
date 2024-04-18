@@ -32,6 +32,7 @@ public class ProblemController {
     @PostMapping("/")
     public AdminGetProblemDto create(HttpServletResponse response, @AuthenticationPrincipal User user, @Valid @RequestBody CreateProblemDto data) throws IOException {
         try {
+            response.setStatus(201);
             return problemService.create(data, user);
         } catch (InvalidIdRuntimeException ex) {
             response.sendError(400, "Invalid tag id encountered");
