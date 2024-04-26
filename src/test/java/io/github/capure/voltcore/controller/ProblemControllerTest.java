@@ -85,7 +85,7 @@ public class ProblemControllerTest {
                         .post("/api/problem/")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(data.getName())));
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.name", is(data.getName())));
     }
 
     @Test

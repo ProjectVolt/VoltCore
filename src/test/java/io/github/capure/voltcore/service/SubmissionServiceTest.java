@@ -91,8 +91,9 @@ public class SubmissionServiceTest {
                 0,
                 0
         );
-        TestCase testCase = new TestCase(1L, problem, "test case", Base64Helper.toBase64("in"), Base64Helper.toBase64("out"), 10);
-        problem.setTestCases(Set.of(testCase));
+        TestCase testCase1 = new TestCase(1L, problem, "test case", Base64Helper.toBase64("in"), Base64Helper.toBase64("out"), 10);
+        TestCase testCase2 = new TestCase(2L, problem, "test case", Base64Helper.toBase64("in"), Base64Helper.toBase64("out"), 10);
+        problem.setTestCases(Set.of(testCase1, testCase2));
         return problem;
     }
 
@@ -332,9 +333,14 @@ public class SubmissionServiceTest {
         assertEquals(3L, testResultId.get(), "Two test results should be saved");
         assertEquals(2, saved.get().getTestResults().size(), "Two test results should be added to submission");
         AvroTestCaseResult test1 = data.getTestResults().getFirst();
+        TestCase testCase1 = getProblem().getTestCases().stream().findFirst().get();
         TestResult testResult1 = saved.get().getTestResults().getFirst();
-        assertAll(() -> assertEquals(test1.getOutput(), testResult1.getOutput()),
+        assertAll(
+                () -> assertEquals(testCase1.getName(), testResult1.getTestCaseName()),
+                () -> assertEquals(Base64Helper.fromBase64(testCase1.getInput()), testResult1.getInput()),
+                () -> assertEquals(test1.getOutput(), testResult1.getOutput()),
                 () -> assertEquals(test1.getScore(), testResult1.getScore()),
+                () -> assertEquals(testCase1.getMaxScore(), testResult1.getMaxScore()),
                 () -> assertEquals(test1.getErrorMessage(), testResult1.getError()),
                 () -> assertEquals(SubmissionStatus.Success, testResult1.getResult()),
                 () -> assertEquals(test1.getJudgerResult().getCpuTime(), testResult1.getCpuTime()),
@@ -344,9 +350,14 @@ public class SubmissionServiceTest {
                 () -> assertEquals(test1.getJudgerResult().getExitCode(), testResult1.getExitCode())
         );
         AvroTestCaseResult test2 = data.getTestResults().getLast();
+        TestCase testCase2 = getProblem().getTestCases().stream().skip(1).findFirst().get();
         TestResult testResult2 = saved.get().getTestResults().getLast();
-        assertAll(() -> assertEquals(test2.getOutput(), testResult2.getOutput()),
+        assertAll(
+                () -> assertEquals(testCase2.getName(), testResult2.getTestCaseName()),
+                () -> assertEquals(Base64Helper.fromBase64(testCase2.getInput()), testResult2.getInput()),
+                () -> assertEquals(test2.getOutput(), testResult2.getOutput()),
                 () -> assertEquals(test2.getScore(), testResult2.getScore()),
+                () -> assertEquals(testCase2.getMaxScore(), testResult2.getMaxScore()),
                 () -> assertEquals(test2.getErrorMessage(), testResult2.getError()),
                 () -> assertEquals(SubmissionStatus.WrongAnswer, testResult2.getResult()),
                 () -> assertEquals(test2.getJudgerResult().getCpuTime(), testResult2.getCpuTime()),

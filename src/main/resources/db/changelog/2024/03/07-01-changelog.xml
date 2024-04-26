@@ -45,5 +45,21 @@
     <include file="db/changelog/2024/04/09-01-changelog.xml"/>
     <include file="db/changelog/2024/04/10-01-changelog.xml"/>
     <include file="db/changelog/2024/04/10-02-changelog.xml"/>
+    <changeSet id="1714126263328-1" author="stola (generated)">
+        <addColumn tableName="test_result">
+            <column name="input" type="TEXT"/>
+            <column name="max_score" type="INT"/>
+            <column name="test_case_name" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1714126263328-2" author="stola (generated)">
+        <addNotNullConstraint columnName="input" tableName="test_result"/>
+    </changeSet>
+    <changeSet id="1714126263328-4" author="stola (generated)">
+        <addNotNullConstraint columnName="max_score" tableName="test_result"/>
+    </changeSet>
+    <changeSet id="1714126263328-6" author="stola (generated)">
+        <addNotNullConstraint columnName="test_case_name" tableName="test_result"/>
+    </changeSet>
 
 </databaseChangeLog>
