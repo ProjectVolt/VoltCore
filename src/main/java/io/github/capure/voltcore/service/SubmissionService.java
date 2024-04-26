@@ -17,6 +17,7 @@ import io.github.capure.voltcore.repository.TestResultRepository;
 import io.github.capure.voltcore.util.Base64Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +55,15 @@ public class SubmissionService {
         Submission submission = submissionRepository.findById(id).orElseThrow(InvalidIdException::new);
         boolean showCode = Objects.equals(submission.getAddedBy().getId(), user.getId()) || Objects.equals(user.getRole(), "ROLE_ADMIN");
         return new GetSubmissionDto(submission, showCode);
+    }
+
+    @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class})
+    public List<GetSubmissionDto> getByUserAndProblemId(User user, Long problemId, Integer limit) throws InvalidIdException {
+        List<Submission> submissions = submissionRepository.findByAddedByAndProblem_IdOrderByCreatedOnDesc(user, problemId, PageRequest.of(0, limit));
+        return submissions.parallelStream().map(submission -> {
+            boolean showCode = Objects.equals(submission.getAddedBy().getId(), user.getId()) || Objects.equals(user.getRole(), "ROLE_ADMIN");
+            return new GetSubmissionDto(submission, showCode);
+        }).toList();
     }
 
     @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class, ProblemNotVisibleException.class})

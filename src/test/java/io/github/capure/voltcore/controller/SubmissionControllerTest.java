@@ -146,5 +146,54 @@ public class SubmissionControllerTest {
                         .get("/api/submission/abc")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/0")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    public void getByUserAndProblemIdShouldReturnGetSubmissionDtoListForValidData() throws Exception {
+        Submission submission = new Submission();
+        submission.setId(1L);
+        Problem problem = new Problem();
+        problem.setId(1L);
+        submission.setProblem(problem);
+        submission.setAddedBy(getUser());
+        submission.setTestResults(List.of());
+        when(submissionService.getByUserAndProblemId(any(), any(), any())).thenReturn(List.of(new GetSubmissionDto(submission, false)));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/problem/1")
+                        .param("limit", "1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].problemId", is(submission.getProblem().getId().intValue())));
+    }
+
+    @Test
+    @WithMockUser
+    public void getByUserAndProblemIdShouldReturn400ForInvalidIdFormat() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/problem/abc")
+                        .param("limit", "1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/problem/0")
+                        .param("limit", "1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    public void getByUserAndProblemIdShouldReturn400ForMissingLimitParam() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/problem/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

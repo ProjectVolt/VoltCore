@@ -8,12 +8,14 @@ import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.SubmissionService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/submission")
@@ -23,8 +25,13 @@ public class SubmissionController {
     private SubmissionService submissionService;
 
     @GetMapping("/{id}")
-    public GetSubmissionDto get(@Valid @PathVariable Long id, @AuthenticationPrincipal User user) throws InvalidIdException {
+    public GetSubmissionDto get(@Valid @PathVariable @Min(1) Long id, @AuthenticationPrincipal User user) throws InvalidIdException {
         return submissionService.get(id, user);
+    }
+
+    @GetMapping("/problem/{problemId}")
+    public List<GetSubmissionDto> getByUserAndProblemId(@Valid @PathVariable @Min(1) Long problemId, @AuthenticationPrincipal User user, @Valid @RequestParam @Min(1) Integer limit) throws InvalidIdException {
+        return submissionService.getByUserAndProblemId(user, problemId, limit);
     }
 
     @PostMapping("/")
