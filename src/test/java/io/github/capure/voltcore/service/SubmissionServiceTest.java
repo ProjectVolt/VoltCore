@@ -208,6 +208,37 @@ public class SubmissionServiceTest {
     }
 
     @Test
+    public void getByUserAndProblemIdShouldShowCodeForOwner() {
+        when(submissionRepository.findByAddedByAndProblem_IdOrderByCreatedOnDesc(any(), any(), any())).thenReturn(List.of(getSubmission()));
+
+        List<GetSubmissionDto> result = assertDoesNotThrow(() -> submissionService.getByUserAndProblemId(getUser(false), getProblem().getId(), 1));
+
+        assertNotNull(result.getFirst().getSourceCode());
+    }
+
+    @Test
+    public void getByUserAndProblemIdShouldShowCodeForAdmin() {
+        when(submissionRepository.findByAddedByAndProblem_IdOrderByCreatedOnDesc(any(), any(), any())).thenReturn(List.of(getSubmission()));
+        User admin = getUser(true);
+        admin.setId(2L);
+
+        List<GetSubmissionDto> result = assertDoesNotThrow(() -> submissionService.getByUserAndProblemId(admin, getProblem().getId(), 1));
+
+        assertNotNull(result.getFirst().getSourceCode());
+    }
+
+    @Test
+    public void getByUserAndProblemIdShouldHideCodeForOtherUser() {
+        when(submissionRepository.findByAddedByAndProblem_IdOrderByCreatedOnDesc(any(), any(), any())).thenReturn(List.of(getSubmission()));
+        User user = getUser(false);
+        user.setId(2L);
+
+        List<GetSubmissionDto> result = assertDoesNotThrow(() -> submissionService.getByUserAndProblemId(user, getProblem().getId(), 1));
+
+        assertNull(result.getFirst().getSourceCode());
+    }
+
+    @Test
     public void createShouldThrowForInvalidProblemId() {
         when(problemRepository.findById(any())).thenReturn(Optional.empty());
 
