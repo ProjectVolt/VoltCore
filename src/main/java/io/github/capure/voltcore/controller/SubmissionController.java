@@ -37,6 +37,7 @@ public class SubmissionController {
     @PostMapping("/")
     public GetSubmissionDto create(HttpServletResponse response, @AuthenticationPrincipal User user, @Valid @RequestBody CreateSubmissionDto data) throws InvalidIdException, ProblemNotVisibleException, IOException {
         try {
+            response.setStatus(201);
             return submissionService.create(data, user);
         } catch (RuntimeException ex) {
             log.error("Create failed", ex);

@@ -92,7 +92,7 @@ public class SubmissionControllerTest {
                         .post("/api/submission/")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.problemId", is(data.getProblemId().intValue())));
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.problemId", is(data.getProblemId().intValue())));
     }
 
     @Test
