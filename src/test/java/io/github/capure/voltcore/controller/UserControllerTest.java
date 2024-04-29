@@ -12,8 +12,10 @@ import io.github.capure.voltcore.exception.*;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
 import io.github.capure.voltcore.service.UserService;
+import io.github.capure.voltcore.util.GlobalExceptionHandler;
 import io.github.capure.voltcore.util.JwtUtil;
 import jakarta.servlet.ServletException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -27,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 import java.util.Set;
@@ -44,8 +47,10 @@ import static org.hamcrest.Matchers.*;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {JwtUtil.class, UserController.class, UserService.class, UserDetailsServiceImpl.class})
 public class UserControllerTest {
-    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private UserController userController;
 
     @MockBean
     private UserService userService;
@@ -76,6 +81,13 @@ public class UserControllerTest {
                 0,
                 Set.of(),
                 Set.of());
+    }
+
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     private static String repeatChar(int size, char ch) {
@@ -220,9 +232,9 @@ public class UserControllerTest {
 
         Mockito.doThrow(FailedDeletionException.class).when(userService).delete(1L);
 
-        assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .delete("/api/user/1"))
-                .andExpect(status().isBadRequest()));
+                .andExpect(status().isBadRequest());
     }
 
     @Test

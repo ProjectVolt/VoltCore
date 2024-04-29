@@ -1,8 +1,10 @@
 package io.github.capure.voltcore.util;
 
 import io.github.capure.voltcore.exception.InvalidIdException;
+import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
 import io.github.capure.voltcore.exception.ProblemNotVisibleException;
 import io.jsonwebtoken.ExpiredJwtException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, List<String>>> handleValidationErrors(MethodArgumentNotValidException ex) {
@@ -51,6 +54,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(getErrorsMap(List.of(ex.getMessage() != null ? ex.getMessage() : "Invalid id")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidIdRuntimeException.class)
+    public ResponseEntity<Map<String, List<String>>> handleInvalidIdRuntime(InvalidIdRuntimeException ex) {
+        return new ResponseEntity<>(getErrorsMap(List.of(ex.getMessage() != null ? ex.getMessage() : "Invalid id")), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ProblemNotVisibleException.class)
     public ResponseEntity<Map<String, List<String>>> handleProblemNotVisible(ProblemNotVisibleException ex) {
         return new ResponseEntity<>(getErrorsMap(List.of(ex.getMessage() != null ? ex.getMessage() : "Problem is not publicly accessible, the visible property is set to false")), new HttpHeaders(), HttpStatus.FORBIDDEN);
@@ -60,6 +68,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, List<String>>> handleMissingParam(MissingServletRequestParameterException ex) {
         String error = ex.getParameterName() + ": " + ex.getMessage();
         return new ResponseEntity<>(getErrorsMap(List.of(error)), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleAll(RuntimeException ex) {
+        log.error("Internal server error: ", ex);
+        return new ResponseEntity<>("Internal server error", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private Map<String, List<String>> getErrorsMap(List<String> errors) {

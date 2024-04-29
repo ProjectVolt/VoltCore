@@ -9,7 +9,9 @@ import io.github.capure.voltcore.model.Submission;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.SubmissionService;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
+import io.github.capure.voltcore.util.GlobalExceptionHandler;
 import io.github.capure.voltcore.util.JwtUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 import java.util.Set;
@@ -37,8 +40,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SubmissionController.class, JwtUtil.class, UserDetailsServiceImpl.class})
 public class SubmissionControllerTest {
-    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private SubmissionController submissionController;
 
     @MockBean
     private SubmissionService submissionService;
@@ -73,6 +78,13 @@ public class SubmissionControllerTest {
                 0,
                 Set.of(),
                 Set.of());
+    }
+
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(submissionController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test

@@ -10,7 +10,9 @@ import io.github.capure.voltcore.service.TagService;
 import io.github.capure.voltcore.service.TagServiceTest;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
 import io.github.capure.voltcore.service.UserService;
+import io.github.capure.voltcore.util.GlobalExceptionHandler;
 import io.github.capure.voltcore.util.JwtUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -24,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
@@ -40,8 +43,10 @@ import static org.hamcrest.Matchers.is;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TagService.class, TagController.class, JwtUtil.class, UserDetailsServiceImpl.class})
 public class TagControllerTest {
-    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private TagController tagController;
 
     @MockBean
     private TagService tagService;
@@ -55,6 +60,13 @@ public class TagControllerTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(tagController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test

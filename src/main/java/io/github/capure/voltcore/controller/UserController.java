@@ -26,58 +26,49 @@ public class UserController {
     private UserService userService;
 
     @PutMapping("/admin/{id}")
-    public String adminUpdate(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id, @Valid @RequestBody AdminPutUserDto data) throws InvalidIdException {
+    public String adminUpdate(@PathVariable("id") @NotNull @Min(1) Long id, @Valid @RequestBody AdminPutUserDto data) throws InvalidIdException {
         try {
             userService.adminUpdate(id, data);
-            response.setStatus(200);
             return "OK";
         } catch (FailedUpdateException e) {
-            response.setStatus(500);
-            return "Internal server error";
+            throw new RuntimeException(e);
         }
     }
 
     @PutMapping("/{id}")
-    public String update(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id, @Valid @RequestBody PutUserDto data) throws InvalidIdException {
+    public String update(@PathVariable("id") @NotNull @Min(1) Long id, @Valid @RequestBody PutUserDto data) throws InvalidIdException {
         try {
             userService.update(id, data);
-            response.setStatus(200);
             return "OK";
         } catch (FailedUpdateException e) {
-            response.setStatus(500);
-            return "Internal server error";
+            throw new RuntimeException(e);
         }
     }
 
     @GetMapping("/admin/")
-    public List<AdminGetUserDto> adminGetAll(HttpServletResponse response, @RequestParam @NotEmpty String search, @RequestParam @Min(0) Integer page, @RequestParam @Min(1) @Max(50) Integer pageSize, @RequestParam(required = false) Boolean enabled) {
-        response.setStatus(200);
+    public List<AdminGetUserDto> adminGetAll(@RequestParam @NotEmpty String search, @RequestParam @Min(0) Integer page, @RequestParam @Min(1) @Max(50) Integer pageSize, @RequestParam(required = false) Boolean enabled) {
         return userService.adminGetAll(search, page, pageSize, enabled);
     }
 
     @GetMapping("/")
-    public List<GetUserDto> getAll(HttpServletResponse response, @RequestParam @NotEmpty String search, @RequestParam @Min(0) Integer page, @RequestParam @Min(1) @Max(50) Integer pageSize) {
-        response.setStatus(200);
+    public List<GetUserDto> getAll(@RequestParam @NotEmpty String search, @RequestParam @Min(0) Integer page, @RequestParam @Min(1) @Max(50) Integer pageSize) {
         return userService.getAll(search, page, pageSize);
     }
 
     @GetMapping("/admin/{id}")
-    public AdminGetUserDto adminGetById(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
-        response.setStatus(200);
+    public AdminGetUserDto adminGetById(@PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
         return userService.adminGet(id);
     }
 
     @GetMapping("/{id}")
-    public GetUserDto getById(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
-        response.setStatus(200);
+    public GetUserDto getById(@PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
         return userService.get(id);
     }
 
     @DeleteMapping("/{id}")
-    public String delete(HttpServletResponse response, @PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
+    public String delete(@PathVariable("id") @NotNull @Min(1) Long id) throws InvalidIdException {
         try {
             userService.delete(id);
-            response.setStatus(200);
             return "Deleted";
         } catch (FailedDeletionException e) {
             throw new InvalidIdException();

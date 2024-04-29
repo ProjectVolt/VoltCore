@@ -10,8 +10,9 @@ import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.service.ProblemService;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
+import io.github.capure.voltcore.util.GlobalExceptionHandler;
 import io.github.capure.voltcore.util.JwtUtil;
-import jakarta.servlet.ServletException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -25,12 +26,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,8 +41,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {ProblemService.class, ProblemController.class, JwtUtil.class, UserDetailsServiceImpl.class})
 public class ProblemControllerTest {
-    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ProblemController problemController;
 
     @MockBean
     private ProblemService problemService;
@@ -71,6 +73,13 @@ public class ProblemControllerTest {
                 null,
                 List.of(new CreateTestCaseDto("test", "in", "out", 10)),
                 0);
+    }
+
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(problemController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test
@@ -161,12 +170,10 @@ public class ProblemControllerTest {
         PutProblemDto data = new PutProblemDto();
         when(problemService.edit(eq(1L), any())).thenThrow(InvalidIdException.class);
 
-        ServletException ex = assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                 .put("/api/problem/1")
                 .content(asJsonString(data))
-                .contentType(MediaType.APPLICATION_JSON)));
-
-        assertEquals(ex.getRootCause().getClass(), InvalidIdException.class);
+                .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -278,10 +285,8 @@ public class ProblemControllerTest {
                         .get("/api/problem/a"))
                 .andExpect(status().isBadRequest());
 
-        ServletException ex = assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
-                .get("/api/problem/13")));
-
-        assertEquals(ex.getRootCause().getClass(), InvalidIdException.class);
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/api/problem/13")).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -306,9 +311,7 @@ public class ProblemControllerTest {
                         .get("/api/problem/admin/a"))
                 .andExpect(status().isBadRequest());
 
-        ServletException ex = assertThrows(ServletException.class, () -> mockMvc.perform(MockMvcRequestBuilders
-                .get("/api/problem/admin/13")));
-
-        assertEquals(ex.getRootCause().getClass(), InvalidIdException.class);
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/api/problem/admin/13")).andExpect(status().isBadRequest());
     }
 }
