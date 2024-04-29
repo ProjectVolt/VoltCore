@@ -6,11 +6,10 @@ import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.ProblemNotVisibleException;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.SubmissionService;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/submission")
-@Slf4j
 public class SubmissionController {
     @Autowired
     private SubmissionService submissionService;
@@ -35,14 +33,8 @@ public class SubmissionController {
     }
 
     @PostMapping("/")
-    public GetSubmissionDto create(HttpServletResponse response, @AuthenticationPrincipal User user, @Valid @RequestBody CreateSubmissionDto data) throws InvalidIdException, ProblemNotVisibleException, IOException {
-        try {
-            response.setStatus(201);
-            return submissionService.create(data, user);
-        } catch (RuntimeException ex) {
-            log.error("Create failed", ex);
-            response.sendError(500, "Server error");
-        }
-        return null;
+    @ResponseStatus(HttpStatus.CREATED)
+    public GetSubmissionDto create(@AuthenticationPrincipal User user, @Valid @RequestBody CreateSubmissionDto data) throws InvalidIdException, ProblemNotVisibleException, IOException {
+        return submissionService.create(data, user);
     }
 }
