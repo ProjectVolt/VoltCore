@@ -42,11 +42,11 @@ public class ProblemService {
     @Transactional("transactionManager")
     public List<GetProblemDto> getAll(Boolean visible, String search, int page, int pageSize) {
         if (visible == null) {
-            return problemRepository.findAllByNameLikeIgnoreCase(search, PageRequest.of(page, pageSize)).parallelStream()
+            return problemRepository.findAllByNameLikeIgnoreCaseOrderByIdAsc(search, PageRequest.of(page, pageSize)).parallelStream()
                     .map(GetProblemDto::new)
                     .map(GetProblemDto::decode).toList();
         } else {
-            return problemRepository.findAllByVisibleAndNameLikeIgnoreCase(visible, search, PageRequest.of(page, pageSize)).parallelStream()
+            return problemRepository.findAllByVisibleAndNameLikeIgnoreCaseOrderByIdAsc(visible, search, PageRequest.of(page, pageSize)).parallelStream()
                     .map(GetProblemDto::new)
                     .map(GetProblemDto::decode).toList();
         }

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface ProblemRepository extends JpaRepository<Problem, Long> {
-    public List<Problem> findAllByNameLikeIgnoreCase(String search, Pageable pageable);
+    public List<Problem> findAllByNameLikeIgnoreCaseOrderByIdAsc(String search, Pageable pageable);
 
-    public List<Problem> findAllByVisibleAndNameLikeIgnoreCase(Boolean visible, String search, Pageable pageable);
+    public List<Problem> findAllByVisibleAndNameLikeIgnoreCaseOrderByIdAsc(Boolean visible, String search, Pageable pageable);
 }
