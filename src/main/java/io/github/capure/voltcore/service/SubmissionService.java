@@ -138,7 +138,10 @@ public class SubmissionService {
         } else if (submission.getAnswerSuccess()) {
             submission.setStatus(SubmissionStatus.Success);
         } else {
-            submission.setStatus(SubmissionStatus.PartiallyAccepted);
+            submission.setStatus(SubmissionStatus.WrongAnswer);
+            if (submission.getTestResults().stream().anyMatch(r -> r.getResult().equals(SubmissionStatus.Success))) {
+                submission.setStatus(SubmissionStatus.PartiallyAccepted);
+            }
         }
 
         if (submission.getStatus().equals(SubmissionStatus.SystemError)) {

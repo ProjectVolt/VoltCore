@@ -468,6 +468,14 @@ public class SubmissionServiceTest {
 
         assertNotNull(saved.get());
         assertEquals(SubmissionStatus.PartiallyAccepted, saved.get().getStatus());
+
+        AvroSubmissionResult data5 = getSubmissionResult();
+        data5.setAnswerSuccess(false);
+        data5.setTestResults(data5.getTestResults().stream().peek(t -> t.getJudgerResult().setResult(AvroJudgerResultCode.RESULT_WRONG_ANSWER)).toList());
+        assertDoesNotThrow(() -> submissionService.update(data5));
+
+        assertNotNull(saved.get());
+        assertEquals(SubmissionStatus.WrongAnswer, saved.get().getStatus());
     }
 
     @Test
