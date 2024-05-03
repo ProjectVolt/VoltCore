@@ -99,7 +99,7 @@ public class ProblemServiceTest {
         problem.setAddedBy(getUser());
         problem.setTestCases(Set.of());
         problem.setTags(Set.of());
-        when(problemRepository.findAllByNameLikeIgnoreCase(any(), any())).thenReturn(List.of(problem));
+        when(problemRepository.findAllByNameLikeIgnoreCaseOrderByIdAsc(any(), any())).thenReturn(List.of(problem));
 
         List<GetProblemDto> result = assertDoesNotThrow(() -> problemService.getAll(null, "test1*", 0, 10));
 
@@ -116,7 +116,7 @@ public class ProblemServiceTest {
         problem.setTestCases(Set.of());
         problem.setTags(Set.of());
         problem.setVisible(true);
-        when(problemRepository.findAllByVisibleAndNameLikeIgnoreCase(eq(true), any(), any())).thenReturn(List.of(problem));
+        when(problemRepository.findAllByVisibleAndNameLikeIgnoreCaseOrderByIdAsc(eq(true), any(), any())).thenReturn(List.of(problem));
 
         List<GetProblemDto> result = assertDoesNotThrow(() -> problemService.getAll(true, "test1*", 0, 10));
 
