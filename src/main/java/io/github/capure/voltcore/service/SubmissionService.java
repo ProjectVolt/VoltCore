@@ -58,9 +58,15 @@ public class SubmissionService {
     }
 
     @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class})
-    public List<GetSubmissionDto> getByUserAndProblemId(User user, Long problemId, Integer limit) throws InvalidIdException {
+    public List<GetSubmissionDto> getAll(Integer page, Integer pageSize) {
+        List<Submission> submissions = submissionRepository.findAllByOrderByCreatedOnDesc(PageRequest.of(page, pageSize));
+        return submissions.stream().map(submission -> new GetSubmissionDto(submission, false)).toList();
+    }
+
+    @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class})
+    public List<GetSubmissionDto> getByUserAndProblemId(User user, Long problemId, Integer limit) {
         List<Submission> submissions = submissionRepository.findByAddedByAndProblem_IdOrderByCreatedOnDesc(user, problemId, PageRequest.of(0, limit));
-        return submissions.parallelStream().map(submission -> {
+        return submissions.stream().map(submission -> {
             boolean showCode = Objects.equals(submission.getAddedBy().getId(), user.getId()) || Objects.equals(user.getRole(), "ROLE_ADMIN");
             return new GetSubmissionDto(submission, showCode);
         }).toList();

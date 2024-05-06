@@ -11,4 +11,6 @@ import java.util.List;
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByAddedByAndProblem_IdOrderByCreatedOnDesc(User addedBy, Long problemId, Pageable pageable);
+
+    List<Submission> findAllByOrderByCreatedOnDesc(Pageable pageable);
 }

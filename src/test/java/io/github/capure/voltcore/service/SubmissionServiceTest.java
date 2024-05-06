@@ -228,6 +228,15 @@ public class SubmissionServiceTest {
     }
 
     @Test
+    public void getAllShouldHideCode() {
+        when(submissionRepository.findAllByOrderByCreatedOnDesc(any())).thenReturn(List.of(getSubmission()));
+
+        List<GetSubmissionDto> result = assertDoesNotThrow(() -> submissionService.getAll(0, 10));
+
+        assertNull(result.getFirst().getSourceCode());
+    }
+
+    @Test
     public void getByUserAndProblemIdShouldHideCodeForOtherUser() {
         when(submissionRepository.findByAddedByAndProblem_IdOrderByCreatedOnDesc(any(), any(), any())).thenReturn(List.of(getSubmission()));
         User user = getUser(false);

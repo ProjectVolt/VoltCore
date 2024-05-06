@@ -7,6 +7,7 @@ import io.github.capure.voltcore.exception.ProblemNotVisibleException;
 import io.github.capure.voltcore.model.User;
 import io.github.capure.voltcore.service.SubmissionService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,8 +29,13 @@ public class SubmissionController {
     }
 
     @GetMapping("/problem/{problemId}")
-    public List<GetSubmissionDto> getByUserAndProblemId(@Valid @PathVariable @Min(1) Long problemId, @AuthenticationPrincipal User user, @Valid @RequestParam @Min(1) Integer limit) throws InvalidIdException {
+    public List<GetSubmissionDto> getByUserAndProblemId(@Valid @PathVariable @Min(1) Long problemId, @AuthenticationPrincipal User user, @Valid @RequestParam @Min(1) Integer limit) {
         return submissionService.getByUserAndProblemId(user, problemId, limit);
+    }
+
+    @GetMapping("/")
+    public List<GetSubmissionDto> getAll(@Valid @RequestParam @Min(0) Integer page, @Valid @RequestParam @Min(1) @Max(50) Integer pageSize) {
+        return submissionService.getAll(page, pageSize);
     }
 
     @PostMapping("/")
@@ -37,4 +43,5 @@ public class SubmissionController {
     public GetSubmissionDto create(@AuthenticationPrincipal User user, @Valid @RequestBody CreateSubmissionDto data) throws InvalidIdException, ProblemNotVisibleException, IOException {
         return submissionService.create(data, user);
     }
+
 }

@@ -14,6 +14,7 @@ import io.github.capure.voltcore.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -206,6 +207,50 @@ public class SubmissionControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/api/submission/problem/1")
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void getAllShouldSend200AndReturnListOfSubmissionsForValidParams() throws Exception {
+        GetSubmissionDto data = new GetSubmissionDto();
+        data.setId(7L);
+        Mockito.when(submissionService.getAll(any(), any())).thenReturn(List.of(data));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/")
+                        .param("page", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id", is(data.getId().intValue())));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void getAllShouldSend400ForInvalidOrMissingParams() throws Exception {
+        GetSubmissionDto data = new GetSubmissionDto();
+        data.setId(7L);
+        Mockito.when(submissionService.getAll(any(), any())).thenReturn(List.of(data));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/")
+                        .param("pageSize", "10"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/")
+                        .param("page", "0"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/")
+                        .param("page", "-1")
+                        .param("pageSize", "10"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/")
+                        .param("page", "0")
+                        .param("pageSize", "51"))
                 .andExpect(status().isBadRequest());
     }
 }
