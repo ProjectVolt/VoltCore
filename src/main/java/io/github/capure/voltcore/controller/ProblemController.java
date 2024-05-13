@@ -27,7 +27,7 @@ public class ProblemController {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public AdminGetProblemDto create(@AuthenticationPrincipal User user, @Valid @RequestBody CreateProblemDto data) throws IOException {
+    public AdminGetProblemDto create(@AuthenticationPrincipal User user, @Valid @RequestBody CreateProblemDto data) throws IOException, InvalidIdException {
         return problemService.create(data, user);
     }
 

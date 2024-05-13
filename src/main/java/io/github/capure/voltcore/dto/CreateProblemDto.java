@@ -15,6 +15,8 @@ import java.util.List;
 public class CreateProblemDto {
     @NotNull
     private boolean visible;
+    @Min(1)
+    private Long contestId;
     @NotNull
     @Size(min = 3, max = 50)
     @Pattern(regexp = "^[a-zA-Z0-9 ]+$")

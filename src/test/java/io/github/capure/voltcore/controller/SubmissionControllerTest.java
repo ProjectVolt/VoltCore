@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.capure.voltcore.config.SecurityConfig;
 import io.github.capure.voltcore.dto.CreateSubmissionDto;
 import io.github.capure.voltcore.dto.GetSubmissionDto;
+import io.github.capure.voltcore.exception.ContestClosedException;
 import io.github.capure.voltcore.model.Problem;
 import io.github.capure.voltcore.model.Submission;
 import io.github.capure.voltcore.model.User;
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -78,6 +81,7 @@ public class SubmissionControllerTest {
                 0,
                 0,
                 Set.of(),
+                Set.of(),
                 Set.of());
     }
 
@@ -119,6 +123,19 @@ public class SubmissionControllerTest {
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    public void createShouldReturn403ForContestClosed() throws Exception {
+        CreateSubmissionDto data = getData();
+        when(submissionService.create(any(), any())).thenThrow(ContestClosedException.class);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/submission/")
+                        .content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -215,7 +232,10 @@ public class SubmissionControllerTest {
     public void getAllShouldSend200AndReturnListOfSubmissionsForValidParams() throws Exception {
         GetSubmissionDto data = new GetSubmissionDto();
         data.setId(7L);
-        Mockito.when(submissionService.getAll(any(), any())).thenReturn(List.of(data));
+        Mockito.when(submissionService.getAll(any(), any(), any())).thenAnswer(a -> {
+            assertNull(a.getArgument(0));
+            return List.of(data);
+        });
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/api/submission/")
@@ -226,10 +246,28 @@ public class SubmissionControllerTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
+    public void getAllShouldHandleContestId() throws Exception {
+        GetSubmissionDto data = new GetSubmissionDto();
+        data.setId(7L);
+        Mockito.when(submissionService.getAll(any(), any(), any())).thenAnswer(a -> {
+            assertEquals(1L, (Long) a.getArgument(0));
+            return List.of(data);
+        });
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/api/submission/")
+                        .param("contestId", "1")
+                        .param("page", "0")
+                        .param("pageSize", "10"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id", is(data.getId().intValue())));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
     public void getAllShouldSend400ForInvalidOrMissingParams() throws Exception {
         GetSubmissionDto data = new GetSubmissionDto();
         data.setId(7L);
-        Mockito.when(submissionService.getAll(any(), any())).thenReturn(List.of(data));
+        Mockito.when(submissionService.getAll(any(), any(), any())).thenReturn(List.of(data));
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/api/submission/")

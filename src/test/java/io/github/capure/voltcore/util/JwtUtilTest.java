@@ -55,6 +55,7 @@ public class JwtUtilTest {
                 0,
                 0,
                 Set.of(),
+                Set.of(),
                 Set.of());
     }
 

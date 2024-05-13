@@ -61,5 +61,53 @@
     <changeSet id="1714126263328-6" author="stola (generated)">
         <addNotNullConstraint columnName="test_case_name" tableName="test_result"/>
     </changeSet>
+    <changeSet id="1715087417787-1" author="stola (generated)">
+        <createSequence incrementBy="50" sequenceName="contest_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1715087417787-2" author="stola (generated)">
+        <createTable tableName="contest">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_contest"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="password" type="VARCHAR(255)"/>
+            <column name="start_time" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="visible" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="added_by_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1715087417787-3" author="stola (generated)">
+        <addColumn tableName="problem">
+            <column name="contest_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1715087417787-4" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="added_by_id" baseTableName="contest"
+                                 constraintName="FK_CONTEST_ON_ADDED_BY" referencedColumnNames="id"
+                                 referencedTableName="volt_user"/>
+    </changeSet>
+    <changeSet id="1715087417787-5" author="stola (generated)">
+        <addForeignKeyConstraint baseColumnNames="contest_id" baseTableName="problem"
+                                 constraintName="FK_PROBLEM_ON_CONTEST" referencedColumnNames="id"
+                                 referencedTableName="contest"/>
+    </changeSet>
+    <changeSet id="1715089731685-1" author="stola (generated)">
+        <addNotNullConstraint columnDataType="TEXT" columnName="description" tableName="contest" validate="true"/>
+    </changeSet>
+    <changeSet id="changed-description-type" author="stola">
+        <modifyDataType tableName="contest" columnName="description" newDataType="TEXT"/>
+    </changeSet>
 
 </databaseChangeLog>

@@ -1,5 +1,6 @@
 package io.github.capure.voltcore.util;
 
+import io.github.capure.voltcore.exception.ContestClosedException;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
 import io.github.capure.voltcore.exception.ProblemNotVisibleException;
@@ -68,6 +69,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, List<String>>> handleMissingParam(MissingServletRequestParameterException ex) {
         String error = ex.getParameterName() + ": " + ex.getMessage();
         return new ResponseEntity<>(getErrorsMap(List.of(error)), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ContestClosedException.class)
+    public ResponseEntity<String> handleContestClosed() {
+        return new ResponseEntity<>("Contest is not currently open for submissions", new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(RuntimeException.class)

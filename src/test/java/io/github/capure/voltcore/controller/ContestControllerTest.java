@@ -2,12 +2,11 @@ package io.github.capure.voltcore.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.capure.voltcore.config.SecurityConfig;
-import io.github.capure.voltcore.dto.CreateProblemDto;
-import io.github.capure.voltcore.dto.GetProblemDto;
-import io.github.capure.voltcore.dto.PutProblemDto;
+import io.github.capure.voltcore.dto.*;
 import io.github.capure.voltcore.dto.admin.AdminGetProblemDto;
 import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
+import io.github.capure.voltcore.service.ContestService;
 import io.github.capure.voltcore.service.ProblemService;
 import io.github.capure.voltcore.service.UserDetailsServiceImpl;
 import io.github.capure.voltcore.util.GlobalExceptionHandler;
@@ -31,6 +30,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,15 +39,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @Import(SecurityConfig.class)
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ProblemService.class, ProblemController.class, JwtUtil.class, UserDetailsServiceImpl.class})
-public class ProblemControllerTest {
+@ContextConfiguration(classes = {ContestController.class, JwtUtil.class, UserDetailsServiceImpl.class})
+public class ContestControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ProblemController problemController;
+    private ContestController contestController;
 
     @MockBean
-    private ProblemService problemService;
+    private ContestService contestService;
 
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
@@ -60,39 +60,27 @@ public class ProblemControllerTest {
         }
     }
 
-    private CreateProblemDto getData() {
-        return new CreateProblemDto(false,
-                null,
-                "problem",
-                "this is a test",
-                List.of("python"),
-                null,
-                1000,
-                1000,
-                "easy",
-                List.of(),
-                null,
-                List.of(new CreateTestCaseDto("test", "in", "out", 10)),
-                0);
+    private CreateContestDto getData() {
+        return new CreateContestDto("Test contest", "description", null, 1L, 2000000000L, true);
     }
 
     @BeforeEach
     public void setup() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(problemController)
+        this.mockMvc = MockMvcBuilders.standaloneSetup(contestController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    public void createShouldReturnGetProblemDtoForValidData() throws Exception {
-        CreateProblemDto data = getData();
-        AdminGetProblemDto getProblemDto = new AdminGetProblemDto();
-        getProblemDto.setName(data.getName());
-        when(problemService.create(any(), any())).thenReturn(getProblemDto);
+    public void createShouldReturnGetContestDtoForValidData() throws Exception {
+        CreateContestDto data = getData();
+        GetContestDto res = new GetContestDto();
+        res.setName(data.getName());
+        when(contestService.create(any(), any())).thenReturn(res);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/problem/")
+                        .post("/api/contest/")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.name", is(data.getName())));
@@ -101,24 +89,11 @@ public class ProblemControllerTest {
     @Test
     @WithMockUser(roles = {"ADMIN"})
     public void createShouldReturn400ForInvalidData() throws Exception {
-        CreateProblemDto data = getData();
+        CreateContestDto data = getData();
         data.setName("*A#");
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/problem/")
-                        .content(asJsonString(data))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    public void createShouldReturn400ForMissingTestCases() throws Exception {
-        CreateProblemDto data = getData();
-        data.setTestCases(List.of());
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/problem/")
+                        .post("/api/contest/")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -127,11 +102,11 @@ public class ProblemControllerTest {
     @Test
     @WithMockUser(roles = {"ADMIN"})
     public void createShouldReturn500ForDbError() throws Exception {
-        CreateProblemDto data = getData();
-        when(problemService.create(any(), any())).thenThrow(RuntimeException.class);
+        CreateContestDto data = getData();
+        when(contestService.create(any(), any())).thenThrow(RuntimeException.class);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/problem/")
+                        .post("/api/contest/")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
@@ -139,27 +114,27 @@ public class ProblemControllerTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    public void editShouldReturnGetProblemDtoForValidData() throws Exception {
-        PutProblemDto data = new PutProblemDto();
-        AdminGetProblemDto getProblemDto = new AdminGetProblemDto();
-        getProblemDto.setName(data.getName());
-        when(problemService.edit(eq(1L), any())).thenReturn(getProblemDto);
+    public void editShouldReturnGetContestDtoForValidData() throws Exception {
+        PutContestDto data = new PutContestDto();
+        GetContestDto getContestDto = new GetContestDto();
+        getContestDto.setName(data.getName());
+        when(contestService.edit(any(), eq(1L), any())).thenReturn(getContestDto);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/problem/1")
+                        .put("/api/contest/1")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(data.getName())));
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.name", is(data.getName())));
     }
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
     public void editShouldReturn400ForInvalidData() throws Exception {
-        PutProblemDto data = new PutProblemDto();
+        PutContestDto data = new PutContestDto();
         data.setName("*A#");
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/problem/1")
+                        .put("/api/contest/1")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -168,11 +143,11 @@ public class ProblemControllerTest {
     @Test
     @WithMockUser(roles = {"ADMIN"})
     public void editShouldReturn400ForInvalidId() throws Exception {
-        PutProblemDto data = new PutProblemDto();
-        when(problemService.edit(eq(1L), any())).thenThrow(InvalidIdException.class);
+        PutContestDto data = new PutContestDto();
+        when(contestService.edit(any(), eq(1L), any())).thenThrow(InvalidIdException.class);
 
         mockMvc.perform(MockMvcRequestBuilders
-                .put("/api/problem/1")
+                .put("/api/contest/1")
                 .content(asJsonString(data))
                 .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
     }
@@ -180,11 +155,11 @@ public class ProblemControllerTest {
     @Test
     @WithMockUser(roles = {"ADMIN"})
     public void editShouldReturn500ForDbError() throws Exception {
-        PutProblemDto data = new PutProblemDto();
-        when(problemService.edit(any(), any())).thenThrow(RuntimeException.class);
+        PutContestDto data = new PutContestDto();
+        when(contestService.edit(any(), any(), any())).thenThrow(RuntimeException.class);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/problem/1")
+                        .put("/api/contest/1")
                         .content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
@@ -192,31 +167,31 @@ public class ProblemControllerTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    public void getAllShouldSend200AndReturnListOfProblemsForValidParams() throws Exception {
-        CreateProblemDto data = getData();
-        GetProblemDto getProblemDto = new GetProblemDto();
-        getProblemDto.setName(data.getName());
-        Mockito.when(problemService.getAll(any(), any(), anyInt(), anyInt())).thenReturn(List.of(getProblemDto));
+    public void getAllShouldSend200AndReturnListOfContestsForValidParams() throws Exception {
+        CreateContestDto data = getData();
+        GetContestDto getContestDto = new GetContestDto();
+        getContestDto.setName(data.getName());
+        Mockito.when(contestService.getAll(any(), any(), anyInt(), anyInt())).thenReturn(List.of(getContestDto));
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
-                        .param("search", "problem")
+                        .get("/api/contest/")
+                        .param("search", "contest")
                         .param("page", "0")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].name", is(data.getName())));
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
+                        .get("/api/contest/")
                         .param("visible", "false")
-                        .param("search", "problem")
+                        .param("search", "contest")
                         .param("page", "0")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].name", is(data.getName())));
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
+                        .get("/api/contest/")
                         .param("visible", "true")
-                        .param("search", "problem")
+                        .param("search", "contest")
                         .param("page", "0")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].name", is(data.getName())));
@@ -225,40 +200,40 @@ public class ProblemControllerTest {
     @Test
     @WithMockUser(roles = {"ADMIN"})
     public void getAllShouldSend400ForInvalidOrMissingParams() throws Exception {
-        CreateProblemDto data = getData();
-        GetProblemDto getProblemDto = new GetProblemDto();
-        getProblemDto.setName(data.getName());
-        Mockito.when(problemService.getAll(any(), any(), anyInt(), anyInt())).thenReturn(List.of(getProblemDto));
+        CreateContestDto data = getData();
+        GetContestDto getContestDto = new GetContestDto();
+        getContestDto.setName(data.getName());
+        Mockito.when(contestService.getAll(any(), any(), anyInt(), anyInt())).thenReturn(List.of(getContestDto));
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
+                        .get("/api/contest/")
                         .param("visible", "123")
-                        .param("search", "problem")
+                        .param("search", "contest")
                         .param("page", "0")
                         .param("pageSize", "10"))
                 .andExpect(status().isBadRequest());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
+                        .get("/api/contest/")
                         .param("page", "0")
                         .param("pageSize", "10"))
                 .andExpect(status().isBadRequest());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
-                        .param("search", "problem")
+                        .get("/api/contest/")
+                        .param("search", "contest")
                         .param("pageSize", "10"))
                 .andExpect(status().isBadRequest());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
-                        .param("search", "problem")
+                        .get("/api/contest/")
+                        .param("search", "contest")
                         .param("page", "0"))
                 .andExpect(status().isBadRequest());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/")
-                        .param("search", "problem")
+                        .get("/api/contest/")
+                        .param("search", "contest")
                         .param("page", "0")
                         .param("pageSize", "invalid"))
                 .andExpect(status().isBadRequest());
@@ -266,53 +241,81 @@ public class ProblemControllerTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    public void getByIdShouldSend200AndReturnProblemForValidData() throws Exception {
-        CreateProblemDto data = getData();
-        GetProblemDto getProblemDto = new GetProblemDto();
-        getProblemDto.setName(data.getName());
-        Mockito.when(problemService.get(any())).thenReturn(getProblemDto);
+    public void getShouldReturnGetContestDtoForValidData() throws Exception {
+        GetContestDto getContestDto = new GetContestDto();
+        getContestDto.setName("hello");
+        when(contestService.get(any(), any(), any())).thenReturn(getContestDto);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/1"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(data.getName())));
+                        .get("/api/contest/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(getContestDto.getName())));
     }
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    public void getByIdShouldSend400ForInvalidOrMissingId() throws Exception {
-        Mockito.when(problemService.get(any())).thenThrow(InvalidIdException.class);
+    public void getShouldReturn400ForInvalidId() throws Exception {
+        when(contestService.get(any(), any(), any())).thenThrow(InvalidIdException.class);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/a"))
+                        .get("/api/contest/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void getWithPasswordShouldReturnGetContestDtoForValidData() throws Exception {
+        GetContestDto getContestDto = new GetContestDto();
+        getContestDto.setName("hello");
+        when(contestService.get(any(), any(), any())).thenAnswer(a -> {
+            assertEquals("pass", a.getArgument(2));
+            return getContestDto;
+        });
+
+        GetContestPasswordDto data = new GetContestPasswordDto("pass");
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/contest/1")
+                        .content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(getContestDto.getName())));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void getWithPasswordShouldReturn400ForInvalidPasswordFormat() throws Exception {
+        GetContestDto getContestDto = new GetContestDto();
+        getContestDto.setName("hello");
+        when(contestService.get(any(), any(), any())).thenAnswer(a -> getContestDto);
+
+        GetContestPasswordDto data = new GetContestPasswordDto(null);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/contest/1")
+                        .content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
-        mockMvc.perform(MockMvcRequestBuilders
-                .get("/api/problem/13")).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    public void adminGetByIdShouldSend200AndReturnProblemForValidData() throws Exception {
-        CreateProblemDto data = getData();
-        AdminGetProblemDto getProblemDto = new AdminGetProblemDto();
-        getProblemDto.setName(data.getName());
-        Mockito.when(problemService.adminGet(any())).thenReturn(getProblemDto);
+        GetContestPasswordDto data1 = new GetContestPasswordDto("");
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/admin/1"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.name", is(data.getName())));
-    }
-
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    public void adminGetByIdShouldSend400ForInvalidOrMissingId() throws Exception {
-        Mockito.when(problemService.adminGet(any())).thenThrow(InvalidIdException.class);
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/problem/admin/a"))
+                        .post("/api/contest/1")
+                        .content(asJsonString(data1))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void getWithPasswordShouldReturn400ForInvalidId() throws Exception {
+        when(contestService.get(any(), any(), any())).thenThrow(InvalidIdException.class);
+        GetContestPasswordDto data = new GetContestPasswordDto("pass");
 
         mockMvc.perform(MockMvcRequestBuilders
-                .get("/api/problem/admin/13")).andExpect(status().isBadRequest());
+                        .post("/api/contest/1")
+                        .content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

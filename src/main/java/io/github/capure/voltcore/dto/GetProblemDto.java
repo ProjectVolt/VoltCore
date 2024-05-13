@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class GetProblemDto {
     private Long id;
+    private GetContestDto contest;
     private boolean visible;
     private String name;
     private String description;
@@ -36,6 +37,7 @@ public class GetProblemDto {
 
     public GetProblemDto(Problem p) {
         setId(p.getId());
+        setContest(p.getContest() == null ? null : new GetContestDto(p.getContest(), false));
         setVisible(p.isVisible());
         setName(p.getName());
         setDescription(p.getDescription());

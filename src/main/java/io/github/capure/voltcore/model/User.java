@@ -53,6 +53,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "addedBy")
     private Set<Submission> submissions;
 
+    @OneToMany(mappedBy = "addedBy")
+    private Set<Contest> contests;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singleton(new SimpleGrantedAuthority(role));

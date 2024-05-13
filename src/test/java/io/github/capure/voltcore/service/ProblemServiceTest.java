@@ -12,6 +12,7 @@ import io.github.capure.voltcore.model.Problem;
 import io.github.capure.voltcore.model.Tag;
 import io.github.capure.voltcore.model.TestCase;
 import io.github.capure.voltcore.model.User;
+import io.github.capure.voltcore.repository.ContestRepository;
 import io.github.capure.voltcore.repository.ProblemRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,6 +52,9 @@ public class ProblemServiceTest {
     @MockBean
     private ProblemRepository problemRepository;
 
+    @MockBean
+    private ContestRepository contestRepository;
+
     private User getUser() {
         return new User(1L,
                 "admin",
@@ -65,11 +69,13 @@ public class ProblemServiceTest {
                 0,
                 0,
                 Set.of(),
+                Set.of(),
                 Set.of());
     }
 
     private CreateProblemDto getData() {
         return new CreateProblemDto(false,
+                null,
                 "test problem",
                 "this is a test",
                 List.of("python"),
@@ -99,7 +105,7 @@ public class ProblemServiceTest {
         problem.setAddedBy(getUser());
         problem.setTestCases(Set.of());
         problem.setTags(Set.of());
-        when(problemRepository.findAllByNameLikeIgnoreCaseOrderByIdAsc(any(), any())).thenReturn(List.of(problem));
+        when(problemRepository.findAllByContestIsNullAndNameLikeIgnoreCaseOrderByIdAsc(any(), any())).thenReturn(List.of(problem));
 
         List<GetProblemDto> result = assertDoesNotThrow(() -> problemService.getAll(null, "test1*", 0, 10));
 
@@ -116,7 +122,7 @@ public class ProblemServiceTest {
         problem.setTestCases(Set.of());
         problem.setTags(Set.of());
         problem.setVisible(true);
-        when(problemRepository.findAllByVisibleAndNameLikeIgnoreCaseOrderByIdAsc(eq(true), any(), any())).thenReturn(List.of(problem));
+        when(problemRepository.findAllByContestIsNullAndVisibleAndNameLikeIgnoreCaseOrderByIdAsc(eq(true), any(), any())).thenReturn(List.of(problem));
 
         List<GetProblemDto> result = assertDoesNotThrow(() -> problemService.getAll(true, "test1*", 0, 10));
 
@@ -228,6 +234,16 @@ public class ProblemServiceTest {
     @WithMockUser
     public void createShouldThrowForNormalUser() {
         assertThrows(AccessDeniedException.class, () -> problemService.create(null, null));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    public void createShouldThrowForInvalidContestId() {
+        CreateProblemDto data = getData();
+        data.setContestId(1L);
+        when(contestRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(InvalidIdException.class, () -> problemService.create(data, getUser()));
     }
 
     @Test
