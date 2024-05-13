@@ -1,5 +1,6 @@
 package io.github.capure.voltcore.repository;
 
+import io.github.capure.voltcore.model.Contest;
 import io.github.capure.voltcore.model.Submission;
 import io.github.capure.voltcore.model.User;
 import org.springframework.data.domain.Pageable;
@@ -12,5 +13,5 @@ import java.util.List;
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByAddedByAndProblem_IdOrderByCreatedOnDesc(User addedBy, Long problemId, Pageable pageable);
 
-    List<Submission> findAllByOrderByCreatedOnDesc(Pageable pageable);
+    List<Submission> findAllByProblem_ContestOrderByCreatedOnDesc(Contest contest, Pageable pageable);
 }

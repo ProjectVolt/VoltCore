@@ -5,12 +5,11 @@ import io.github.capure.schema.AvroSubmissionResult;
 import io.github.capure.voltcore.dto.CreateSubmissionDto;
 import io.github.capure.voltcore.dto.GetSubmissionDto;
 import io.github.capure.voltcore.dto.SubmissionStatus;
+import io.github.capure.voltcore.exception.ContestClosedException;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.ProblemNotVisibleException;
-import io.github.capure.voltcore.model.Problem;
-import io.github.capure.voltcore.model.Submission;
-import io.github.capure.voltcore.model.TestResult;
-import io.github.capure.voltcore.model.User;
+import io.github.capure.voltcore.model.*;
+import io.github.capure.voltcore.repository.ContestRepository;
 import io.github.capure.voltcore.repository.ProblemRepository;
 import io.github.capure.voltcore.repository.SubmissionRepository;
 import io.github.capure.voltcore.repository.TestResultRepository;
@@ -22,6 +21,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -31,6 +32,12 @@ import java.util.concurrent.ExecutionException;
 @Service
 @Slf4j
 public class SubmissionService {
+    @Autowired
+    private ContestRepository contestRepository;
+
+    @Autowired
+    private Clock clock;
+
     @Autowired
     private ProblemRepository problemRepository;
 
@@ -58,8 +65,9 @@ public class SubmissionService {
     }
 
     @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class})
-    public List<GetSubmissionDto> getAll(Integer page, Integer pageSize) {
-        List<Submission> submissions = submissionRepository.findAllByOrderByCreatedOnDesc(PageRequest.of(page, pageSize));
+    public List<GetSubmissionDto> getAll(Long contestId, Integer page, Integer pageSize) throws InvalidIdException {
+        Contest contest = contestId == null ? null : contestRepository.findById(contestId).orElseThrow(InvalidIdException::new);
+        List<Submission> submissions = submissionRepository.findAllByProblem_ContestOrderByCreatedOnDesc(contest, PageRequest.of(page, pageSize));
         return submissions.stream().map(submission -> new GetSubmissionDto(submission, false)).toList();
     }
 
@@ -72,10 +80,16 @@ public class SubmissionService {
         }).toList();
     }
 
-    @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class, ProblemNotVisibleException.class})
-    public GetSubmissionDto create(CreateSubmissionDto data, User user) throws InvalidIdException, ProblemNotVisibleException {
+    @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class, ProblemNotVisibleException.class, ContestClosedException.class})
+    public GetSubmissionDto create(CreateSubmissionDto data, User user) throws InvalidIdException, ProblemNotVisibleException, ContestClosedException {
         Problem problem = problemRepository.findById(data.getProblemId()).orElseThrow(InvalidIdException::new);
         if (!problem.isVisible()) throw new ProblemNotVisibleException();
+        Contest contest = problem.getContest();
+        if (contest != null) {
+            Instant now = Instant.now(clock);
+            if (contest.getStartTime().isAfter(now) || contest.getEndTime().isBefore(now))
+                throw new ContestClosedException();
+        }
         log.info("Creating new submission - problem_id: {} - user: {}", data.getProblemId(), user.getId());
         Submission submission = new Submission(null,
                 problem,

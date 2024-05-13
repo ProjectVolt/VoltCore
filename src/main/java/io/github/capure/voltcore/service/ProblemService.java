@@ -8,10 +8,8 @@ import io.github.capure.voltcore.dto.admin.CreateTestCaseDto;
 import io.github.capure.voltcore.dto.admin.PutTestCaseDto;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.InvalidIdRuntimeException;
-import io.github.capure.voltcore.model.Problem;
-import io.github.capure.voltcore.model.Tag;
-import io.github.capure.voltcore.model.TestCase;
-import io.github.capure.voltcore.model.User;
+import io.github.capure.voltcore.model.*;
+import io.github.capure.voltcore.repository.ContestRepository;
 import io.github.capure.voltcore.repository.ProblemRepository;
 import io.github.capure.voltcore.util.Base64Helper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +27,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProblemService {
     @Autowired
+    private ContestRepository contestRepository;
+    @Autowired
     TagService tagService;
 
     @Autowired
@@ -42,11 +42,11 @@ public class ProblemService {
     @Transactional("transactionManager")
     public List<GetProblemDto> getAll(Boolean visible, String search, int page, int pageSize) {
         if (visible == null) {
-            return problemRepository.findAllByNameLikeIgnoreCaseOrderByIdAsc(search, PageRequest.of(page, pageSize)).parallelStream()
+            return problemRepository.findAllByContestIsNullAndNameLikeIgnoreCaseOrderByIdAsc(search, PageRequest.of(page, pageSize)).parallelStream()
                     .map(GetProblemDto::new)
                     .map(GetProblemDto::decode).toList();
         } else {
-            return problemRepository.findAllByVisibleAndNameLikeIgnoreCaseOrderByIdAsc(visible, search, PageRequest.of(page, pageSize)).parallelStream()
+            return problemRepository.findAllByContestIsNullAndVisibleAndNameLikeIgnoreCaseOrderByIdAsc(visible, search, PageRequest.of(page, pageSize)).parallelStream()
                     .map(GetProblemDto::new)
                     .map(GetProblemDto::decode).toList();
         }
@@ -66,11 +66,18 @@ public class ProblemService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @Transactional("transactionManager")
-    public AdminGetProblemDto create(CreateProblemDto data, User user) {
+    @Transactional(value = "transactionManager", rollbackFor = {InvalidIdException.class})
+    public AdminGetProblemDto create(CreateProblemDto data, User user) throws InvalidIdException {
         Problem problem = new Problem();
 
         log.info("Adding new problem - name: {} addedBy: {} - {}", data.getName(), user.getId(), user.getUsername());
+
+        if (data.getContestId() != null) {
+            log.info("Problem is in contest, retrieving contest data from db");
+            Contest contest = contestRepository.findById(data.getContestId()).orElseThrow(InvalidIdException::new);
+            problem.setContest(contest);
+            log.info("Contest data retrieved successfully");
+        }
 
         problem.setVisible(data.isVisible());
         problem.setName(data.getName());

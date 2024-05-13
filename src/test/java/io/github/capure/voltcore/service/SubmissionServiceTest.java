@@ -4,23 +4,32 @@ import io.github.capure.schema.*;
 import io.github.capure.voltcore.dto.CreateSubmissionDto;
 import io.github.capure.voltcore.dto.GetSubmissionDto;
 import io.github.capure.voltcore.dto.SubmissionStatus;
+import io.github.capure.voltcore.exception.ContestClosedException;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.ProblemNotVisibleException;
 import io.github.capure.voltcore.model.*;
+import io.github.capure.voltcore.repository.ContestRepository;
 import io.github.capure.voltcore.repository.ProblemRepository;
 import io.github.capure.voltcore.repository.SubmissionRepository;
 import io.github.capure.voltcore.repository.TestResultRepository;
 import io.github.capure.voltcore.util.Base64Helper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -31,7 +40,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@Configuration
+class SubmissionServiceTestConfig {
+    @Bean
+    public Clock clock() {
+        return Clock.fixed(
+                Instant.parse("2024-03-07T07:07:07.123Z"),
+                ZoneId.of("Europe/Warsaw"));
+    }
+}
+
 @ExtendWith(SpringExtension.class)
+@Import(SubmissionServiceTestConfig.class)
 @ContextConfiguration(classes = {SubmissionService.class})
 @EnableMethodSecurity
 public class SubmissionServiceTest {
@@ -48,7 +68,13 @@ public class SubmissionServiceTest {
     private TestResultRepository testResultRepository;
 
     @MockBean
+    private ContestRepository contestRepository;
+
+    @MockBean
     private KafkaTemplate<String, AvroSubmission> kafkaTemplate;
+
+    @Autowired
+    private Clock clock;
 
     private User getUser(Boolean admin) {
         return new User(1L,
@@ -64,11 +90,13 @@ public class SubmissionServiceTest {
                 0,
                 0,
                 Set.of(),
+                Set.of(),
                 Set.of());
     }
 
     private Problem getProblem() {
         Problem problem = new Problem(1L,
+                null,
                 true,
                 "test problem",
                 "description",
@@ -229,11 +257,18 @@ public class SubmissionServiceTest {
 
     @Test
     public void getAllShouldHideCode() {
-        when(submissionRepository.findAllByOrderByCreatedOnDesc(any())).thenReturn(List.of(getSubmission()));
+        when(submissionRepository.findAllByProblem_ContestOrderByCreatedOnDesc(any(), any())).thenReturn(List.of(getSubmission()));
 
-        List<GetSubmissionDto> result = assertDoesNotThrow(() -> submissionService.getAll(0, 10));
+        List<GetSubmissionDto> result = assertDoesNotThrow(() -> submissionService.getAll(null, 0, 10));
 
         assertNull(result.getFirst().getSourceCode());
+    }
+
+    @Test
+    public void getAllShouldThrowForInvalidContestId() {
+        when(contestRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(InvalidIdException.class, () -> submissionService.getAll(1L, 0, 10));
     }
 
     @Test
@@ -261,6 +296,29 @@ public class SubmissionServiceTest {
         when(problemRepository.findById(any())).thenReturn(Optional.of(problem));
 
         assertThrows(ProblemNotVisibleException.class, () -> submissionService.create(getCreateSubmissionDto(), getUser(false)));
+    }
+
+    @Test
+    public void createShouldThrowForClosedContest() {
+        Contest contest = new Contest(1L,
+                "name",
+                "desc",
+                null,
+                Instant.now(clock).minusSeconds(3600 * 48),
+                Instant.now(clock).plusSeconds(3600 * 48),
+                true,
+                null,
+                null);
+        Problem problem = getProblem();
+        problem.setContest(contest);
+        when(problemRepository.findById(any())).thenAnswer(a -> Optional.of(problem));
+
+        contest.setStartTime(Instant.now(clock).plusSeconds(30));
+        assertThrows(ContestClosedException.class, () -> submissionService.create(getCreateSubmissionDto(), getUser(false)));
+
+        contest.setStartTime(Instant.now(clock).minusSeconds(30));
+        contest.setEndTime(Instant.now(clock).minusSeconds(5));
+        assertThrows(ContestClosedException.class, () -> submissionService.create(getCreateSubmissionDto(), getUser(false)));
     }
 
     @Test

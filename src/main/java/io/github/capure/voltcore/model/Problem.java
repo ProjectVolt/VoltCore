@@ -20,6 +20,9 @@ public class Problem {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
+    @ManyToOne
+    @JoinColumn(name = "contest_id")
+    private Contest contest;
     @NotNull
     private boolean visible;
     @NotNull

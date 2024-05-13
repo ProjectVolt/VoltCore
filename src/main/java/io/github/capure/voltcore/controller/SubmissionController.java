@@ -2,6 +2,7 @@ package io.github.capure.voltcore.controller;
 
 import io.github.capure.voltcore.dto.CreateSubmissionDto;
 import io.github.capure.voltcore.dto.GetSubmissionDto;
+import io.github.capure.voltcore.exception.ContestClosedException;
 import io.github.capure.voltcore.exception.InvalidIdException;
 import io.github.capure.voltcore.exception.ProblemNotVisibleException;
 import io.github.capure.voltcore.model.User;
@@ -34,13 +35,13 @@ public class SubmissionController {
     }
 
     @GetMapping("/")
-    public List<GetSubmissionDto> getAll(@Valid @RequestParam @Min(0) Integer page, @Valid @RequestParam @Min(1) @Max(50) Integer pageSize) {
-        return submissionService.getAll(page, pageSize);
+    public List<GetSubmissionDto> getAll(@Valid @RequestParam(required = false) @Min(1) Long contestId, @Valid @RequestParam @Min(0) Integer page, @Valid @RequestParam @Min(1) @Max(50) Integer pageSize) throws InvalidIdException {
+        return submissionService.getAll(contestId, page, pageSize);
     }
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public GetSubmissionDto create(@AuthenticationPrincipal User user, @Valid @RequestBody CreateSubmissionDto data) throws InvalidIdException, ProblemNotVisibleException, IOException {
+    public GetSubmissionDto create(@AuthenticationPrincipal User user, @Valid @RequestBody CreateSubmissionDto data) throws InvalidIdException, ProblemNotVisibleException, IOException, ContestClosedException {
         return submissionService.create(data, user);
     }
 
